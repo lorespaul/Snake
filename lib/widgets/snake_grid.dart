@@ -411,7 +411,8 @@ class _SnakeGridState extends State<SnakeGrid> {
         if (_direction != Direction.left) _direction = Direction.right;
         return;
       case 'j':
-        if (_direction != Direction.right) _direction = Direction.left;
+        if (_direction != Direction.right && _direction != Direction.none)
+          _direction = Direction.left;
         return;
       case 'i':
         if (_direction != Direction.down) _direction = Direction.up;
@@ -424,7 +425,8 @@ class _SnakeGridState extends State<SnakeGrid> {
       if (_direction != Direction.left) _direction = Direction.right;
       return;
     } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-      if (_direction != Direction.right) _direction = Direction.left;
+      if (_direction != Direction.right && _direction != Direction.none)
+        _direction = Direction.left;
       return;
     } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
       if (_direction != Direction.down) _direction = Direction.up;
