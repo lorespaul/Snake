@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 class SnakeNode extends StatefulWidget {
   SnakeNode({
     Key key,
-    this.controller,
-    this.row,
-    this.column,
-    this.grid,
-    this.snake,
+    @required this.controller,
+    @required this.row,
+    @required this.column,
+    @required this.grid,
+    @required this.snake,
   }) : super(key: key);
   final SnakeNodeController controller;
   final int row;
@@ -45,26 +45,21 @@ class _SnakeNodeState extends State<SnakeNode> {
     _snake = widget.snake;
     _updateSnakeIndex();
     var color = _grid[widget.row][widget.column];
-    if (color != null)
-      _color = color;
-    else
-      _color = Colors.black;
-    if (widget.controller != null) {
-      widget.controller.addListener(
-        widget.row,
-        widget.column,
-        (List<List<Color>> grid, List<Cell> snake) {
-          var color = grid[widget.row][widget.column];
-          _snake = snake;
-          _updateSnakeIndex();
-          if (_color != color || color == Colors.white) {
-            setState(
-              () => _color = color,
-            );
-          }
-        },
-      );
-    }
+    _color = color;
+    widget.controller.addListener(
+      widget.row,
+      widget.column,
+      (List<List<Color>> grid, List<Cell> snake) {
+        var color = grid[widget.row][widget.column];
+        _snake = snake;
+        _updateSnakeIndex();
+        if (_color != color || color == Colors.white) {
+          setState(
+            () => _color = color,
+          );
+        }
+      },
+    );
   }
 
   void _updateSnakeIndex() {

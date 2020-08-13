@@ -13,16 +13,20 @@ import 'package:flutter/services.dart';
 class SnakeGrid extends StatefulWidget {
   SnakeGrid({
     Key key,
-    this.rows,
-    this.columns,
+    @required this.rows,
+    @required this.columns,
+    @required this.maxLength,
+    this.speed = SnakeSpeed.medium,
     this.onRestart,
-    this.maxLength,
+    this.onOpenSettings,
   }) : super(key: key);
 
   final int rows;
   final int columns;
-  final Function(int) onRestart;
+  final SnakeSpeed speed;
   final int maxLength;
+  final Function(int) onRestart;
+  final Function onOpenSettings;
 
   @override
   _SnakeGridState createState() => _SnakeGridState();
@@ -75,18 +79,34 @@ class _SnakeGridState extends State<SnakeGrid> {
   void _initTimers() {
     if (!_lose) {
       if (_movingTimer == null) {
-        _movingTimer =
-            Timer.periodic(const Duration(milliseconds: 100), (timer) {
-          _moveSnake();
-        });
+        _movingTimer = Timer.periodic(
+          Duration(milliseconds: _getSnakeSpeed()),
+          (timer) {
+            _moveSnake();
+          },
+        );
       }
       if (_generateTimer == null) {
-        _generateTimer =
-            Timer.periodic(const Duration(milliseconds: 2000), (timer) {
-          _generateCell();
-        });
+        _generateTimer = Timer.periodic(
+          const Duration(milliseconds: 2000),
+          (timer) {
+            _generateCell();
+          },
+        );
       }
     }
+  }
+
+  int _getSnakeSpeed() {
+    switch (widget.speed) {
+      case SnakeSpeed.slow:
+        return 150;
+      case SnakeSpeed.medium:
+        return 100;
+      case SnakeSpeed.fast:
+        return 80;
+    }
+    return 100;
   }
 
   void _moveSnake() {
@@ -345,6 +365,14 @@ class _SnakeGridState extends State<SnakeGrid> {
                     child: Column(
                       children: [
                         RaisedButton(
+                          child: Text('Settings'),
+                          onPressed: () {
+                            if (widget.onOpenSettings != null) {
+                              widget.onOpenSettings();
+                            }
+                          },
+                        ),
+                        RaisedButton(
                           child: Text('Continue'),
                           onPressed: _initTimers,
                         ),
@@ -444,6 +472,12 @@ enum Direction {
   down,
   left,
   right,
+}
+
+enum SnakeSpeed {
+  slow,
+  medium,
+  fast,
 }
 
 class Cell {

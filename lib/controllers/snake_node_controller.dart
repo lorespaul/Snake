@@ -26,7 +26,11 @@ class SnakeNodeController {
   }
 
   void trigger(
-      List<List<Color>> colors, List<Cell> snake, int length, int maxLength) {
+    List<List<Color>> colors,
+    List<Cell> snake,
+    int length,
+    int maxLength,
+  ) {
     for (int i = 0; i < colors.length; i++) {
       var colColors = colors[i];
       for (int n = 0; n < colColors.length; n++) {

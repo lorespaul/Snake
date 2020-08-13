@@ -1,4 +1,6 @@
 import 'package:Snake/widgets/snake_grid.dart';
+import 'package:Snake/widgets/snake_settings.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -26,6 +28,7 @@ class MyApp extends StatelessWidget {
         // the app on. For desktop platforms, the controls will be smaller and
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        canvasColor: Colors.transparent,
       ),
       home: MyHomePage(title: 'Snake'),
       debugShowCheckedModeBanner: false,
@@ -55,23 +58,43 @@ class _MyHomePageState extends State<MyHomePage> {
   // int _counter = 0;
   static const int ROWS = 17;
   static const int COLUMNS = 17;
+  static const SnakeSpeed SNAKE_SPEED = SnakeSpeed.medium;
 
+  int _rows;
+  int _columns;
+  SnakeSpeed _snakeSpeed;
   String _snakeKey = 'A';
   int _maxLength = 0;
 
-  // void _incrementCounter() {
-  //   setState(() {
-  //     // This call to setState tells the Flutter framework that something has
-  //     // changed in this State, which causes it to rerun the build method below
-  //     // so that the display can reflect the updated values. If we changed
-  //     // _counter without calling setState(), then the build method would not be
-  //     // called again, and so nothing would appear to happen.
-  //     _counter++;
-  //   });
+  // FocusNode _snakeGridFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _initDefaults();
+  }
+
+  void _initDefaults() {
+    _rows = ROWS;
+    _columns = COLUMNS;
+    _snakeSpeed = SNAKE_SPEED;
+  }
+
+  @override
+  void dispose() {
+    // if (_snakeGridFocusNode != null) _snakeGridFocusNode.dispose();
+    super.dispose();
+  }
+
+  // _updateSnakeGridFocusNode(BuildContext context) {
+  //   if (_snakeGridFocusNode != null) _snakeGridFocusNode.dispose();
+  //   _snakeGridFocusNode = FocusNode();
+  //   // FocusScope.of(context).requestFocus(_snakeGridFocusNode);
   // }
 
   @override
   Widget build(BuildContext context) {
+    // _updateSnakeGridFocusNode(context);
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -85,19 +108,57 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: SnakeGrid(
-          key: Key(_snakeKey),
-          rows: ROWS,
-          columns: COLUMNS,
-          maxLength: _maxLength,
-          onRestart: (int length) => setState(() {
-            if (length > _maxLength) {
-              _maxLength = length;
-            }
-            _snakeKey = _snakeKey == 'A' ? 'AA' : 'A';
-          }),
+        child: Container(
+          decoration: BoxDecoration(color: Colors.grey[200]),
+          // Center is a layout widget. It takes a single child and positions it
+          // in the middle of the parent.
+          child: SnakeGrid(
+            key: Key(_snakeKey),
+            // focusNode: _snakeGridFocusNode,
+            rows: _rows,
+            columns: _columns,
+            speed: _snakeSpeed,
+            maxLength: _maxLength,
+            onRestart: (int length) => setState(() {
+              if (length > _maxLength) {
+                _maxLength = length;
+              }
+              _snakeKey = _snakeKey == 'A' ? 'AA' : 'A';
+            }),
+            onOpenSettings: () {
+              showCupertinoModalPopup(
+                context: context,
+                builder: (context) {
+                  return Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                      ),
+                      child: SnakeSettings(
+                        rows: _rows,
+                        columns: _columns,
+                        speed: _snakeSpeed,
+                        onSettingChange: (
+                          SnakeSettingType type,
+                          Object value,
+                        ) {
+                          switch (type) {
+                            case SnakeSettingType.rows:
+                              break;
+                            case SnakeSettingType.columns:
+                              break;
+                            case SnakeSettingType.speed:
+                              break;
+                          }
+                        },
+                        onResetDefault: () {},
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
       // floatingActionButton: FloatingActionButton(
