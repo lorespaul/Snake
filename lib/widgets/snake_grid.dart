@@ -391,7 +391,7 @@ class _SnakeGridState extends State<SnakeGrid> {
 
   void _keyListener(RawKeyEvent event) {
     if (event.runtimeType.toString() == 'RawKeyDownEvent') {
-      if (event.logicalKey == LogicalKeyboardKey.enter) {
+      if (event.logicalKey == LogicalKeyboardKey.space) {
         if (_lose) {
           _restart();
         } else if (_movingTimer == null)
