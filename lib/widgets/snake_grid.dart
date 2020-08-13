@@ -40,6 +40,7 @@ class _SnakeGridState extends State<SnakeGrid> {
   bool _lose;
   SnakeNodeController _snakeNodeController;
   List<int> _initialSnake;
+  List<RawKeyEvent> _nextKeys;
   final Random _random = Random();
 
   @override
@@ -67,6 +68,7 @@ class _SnakeGridState extends State<SnakeGrid> {
     for (int i in _initialSnake) {
       _snakePositions.add(Cell((widget.columns / 2).round(), i));
     }
+    _nextKeys = List<RawKeyEvent>();
     _initTimers();
   }
 
@@ -88,6 +90,12 @@ class _SnakeGridState extends State<SnakeGrid> {
   }
 
   void _moveSnake() {
+    if (_nextKeys.isNotEmpty) {
+      var next = _nextKeys.first;
+      _nextKeys.removeAt(0);
+      _updateDirection(next);
+    }
+
     var tail = _snakePositions.first;
     var head = _snakePositions.last;
     Cell newHead;
@@ -128,48 +136,13 @@ class _SnakeGridState extends State<SnakeGrid> {
       } else {
         _generationCounter = 0;
         _generate = null;
-
-        // var difLength = _snakePositions.length - _initialSnake.length;
-        // var addTails = (difLength / 5).floor() - 1;
-        // print('add tails: $addTails');
-        // if (addTails > 0) {
-        //   var preTail = _snakePositions[1];
-        //   if (tail.row == preTail.row) {
-        //     if (tail.column > preTail.column) {
-        //       for (int i = 0; i < addTails; i++) {
-        //         var cell = Cell(tail.row, tail.column + i + 1);
-        //         _snakePositions.insert(0, cell);
-        //         _whiteNodes[cell.row][cell.column] = Colors.white;
-        //       }
-        //     } else if (tail.column < preTail.column) {
-        //       for (int i = 0; i < addTails; i++) {
-        //         var cell = Cell(tail.row, tail.column - i - 1);
-        //         _snakePositions.insert(0, cell);
-        //         _whiteNodes[cell.row][cell.column] = Colors.white;
-        //       }
-        //     }
-        //   } else if (tail.column == preTail.column) {
-        //     if (tail.row > preTail.row) {
-        //       for (int i = 0; i < addTails; i++) {
-        //         var cell = Cell(tail.row + i + 1, tail.column);
-        //         _snakePositions.insert(0, cell);
-        //         _whiteNodes[cell.row][cell.column] = Colors.white;
-        //       }
-        //     } else if (tail.row < preTail.row) {
-        //       for (int i = 0; i < addTails; i++) {
-        //         var cell = Cell(tail.row - i - 1, tail.column);
-        //         _snakePositions.insert(0, cell);
-        //         _whiteNodes[cell.row][cell.column] = Colors.white;
-        //       }
-        //     }
-        //   }
-        // }
       }
       _snakePositions.add(newHead);
 
       _whiteNodes[newHead.row][newHead.column] = Colors.white;
       _snakeNodeController.trigger(
         _whiteNodes,
+        _snakePositions,
         _snakePositions.length,
         widget.maxLength,
       );
@@ -234,7 +207,8 @@ class _SnakeGridState extends State<SnakeGrid> {
                 controller: _snakeNodeController,
                 row: row,
                 column: column,
-                color: _whiteNodes[row][column],
+                grid: _whiteNodes,
+                snake: _snakePositions,
               ),
             ],
           ),
@@ -248,45 +222,7 @@ class _SnakeGridState extends State<SnakeGrid> {
       key: Key('Keyboard${widget.key.toString()}'),
       focusNode: _focusNode,
       autofocus: true,
-      onKey: (RawKeyEvent event) {
-        if (event.runtimeType.toString() == 'RawKeyDownEvent') {
-          switch (event.logicalKey.keyLabel) {
-            case 'l':
-              if (_direction != Direction.left) _direction = Direction.right;
-              return;
-            case 'j':
-              if (_direction != Direction.right) _direction = Direction.left;
-              return;
-            case 'i':
-              if (_direction != Direction.down) _direction = Direction.up;
-              return;
-            case 'k':
-              if (_direction != Direction.up) _direction = Direction.down;
-              return;
-          }
-          if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            if (_direction != Direction.left) _direction = Direction.right;
-            return;
-          } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-            if (_direction != Direction.right) _direction = Direction.left;
-            return;
-          } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-            if (_direction != Direction.down) _direction = Direction.up;
-            return;
-          } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-            if (_direction != Direction.up) _direction = Direction.down;
-            return;
-          } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-            if (_lose) {
-              _restart();
-            } else if (_movingTimer == null)
-              _initTimers();
-            else
-              _clearTimers();
-            return;
-          }
-        }
-      },
+      onKey: _keyListener,
       child: Container(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -452,6 +388,52 @@ class _SnakeGridState extends State<SnakeGrid> {
       ),
     );
   }
+
+  void _keyListener(RawKeyEvent event) {
+    if (event.runtimeType.toString() == 'RawKeyDownEvent') {
+      if (event.logicalKey == LogicalKeyboardKey.enter) {
+        if (_lose) {
+          _restart();
+        } else if (_movingTimer == null)
+          _initTimers();
+        else
+          _clearTimers();
+        return;
+      } else if (_movingTimer != null) {
+        if (_nextKeys.isEmpty || _nextKeys.last != event) _nextKeys.add(event);
+      }
+    }
+  }
+
+  void _updateDirection(RawKeyEvent event) {
+    switch (event.logicalKey.keyLabel) {
+      case 'l':
+        if (_direction != Direction.left) _direction = Direction.right;
+        return;
+      case 'j':
+        if (_direction != Direction.right) _direction = Direction.left;
+        return;
+      case 'i':
+        if (_direction != Direction.down) _direction = Direction.up;
+        return;
+      case 'k':
+        if (_direction != Direction.up) _direction = Direction.down;
+        return;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+      if (_direction != Direction.left) _direction = Direction.right;
+      return;
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      if (_direction != Direction.right) _direction = Direction.left;
+      return;
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      if (_direction != Direction.down) _direction = Direction.up;
+      return;
+    } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      if (_direction != Direction.up) _direction = Direction.down;
+      return;
+    }
+  }
 }
 
 enum Direction {
@@ -466,4 +448,10 @@ class Cell {
   Cell(this.row, this.column);
   int row;
   int column;
+
+  @override
+  bool operator ==(o) => o is Cell && o.row == row && o.column == column;
+
+  @override
+  int get hashCode => row.hashCode ^ column.hashCode;
 }
