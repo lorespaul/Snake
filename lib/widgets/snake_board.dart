@@ -52,13 +52,13 @@ class _SnakeBoardState extends State<SnakeBoard> {
       children: [
         Container(
           alignment: Alignment.centerRight,
-          margin: EdgeInsets.only(top: 10),
+          margin: EdgeInsets.only(top: 10, left: 6),
           child: Row(
             children: [
               Container(
                 width: 15,
                 height: 15,
-                margin: EdgeInsets.only(right: 10),
+                margin: EdgeInsets.only(right: 5),
                 decoration: BoxDecoration(
                   color: Colors.red[300],
                   border: Border.all(color: Colors.red[600], width: 2.5),
@@ -70,11 +70,11 @@ class _SnakeBoardState extends State<SnakeBoard> {
                 child: Text('${_length - _baseLength}'),
               ),
               Container(
-                margin: EdgeInsets.only(right: 10),
+                margin: EdgeInsets.only(right: 5),
                 child: Icon(
-                  Icons.favorite,
+                  Icons.flag,
                   color: Colors.amber[300],
-                  size: 20,
+                  size: 24,
                 ),
               ),
               Container(
