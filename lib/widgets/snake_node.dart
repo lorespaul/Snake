@@ -6,15 +6,20 @@ import 'package:flutter/material.dart';
 class SnakeNode extends StatefulWidget {
   SnakeNode({
     Key key,
-    this.controller,
-    this.row,
-    this.column,
-    this.grid,
-    this.snake,
+    @required this.controller,
+    @required this.row,
+    @required this.column,
+    @required this.width,
+    @required this.height,
+    @required this.grid,
+    @required this.snake,
   }) : super(key: key);
+
   final SnakeNodeController controller;
   final int row;
   final int column;
+  final double width;
+  final double height;
   final List<List<Color>> grid;
   final List<Cell> snake;
 
@@ -35,7 +40,7 @@ class _SnakeNodeState extends State<SnakeNode> {
   final int _maxRow;
   final int _maxColumn;
 
-  static const double SNAKE_BORDER_WIDTH = 3.0;
+  static const double SNAKE_BORDER_WIDTH = 2.5;
   static final Color _snakeBorderColor = Colors.green[700];
 
   @override
@@ -45,26 +50,21 @@ class _SnakeNodeState extends State<SnakeNode> {
     _snake = widget.snake;
     _updateSnakeIndex();
     var color = _grid[widget.row][widget.column];
-    if (color != null)
-      _color = color;
-    else
-      _color = Colors.black;
-    if (widget.controller != null) {
-      widget.controller.addListener(
-        widget.row,
-        widget.column,
-        (List<List<Color>> grid, List<Cell> snake) {
-          var color = grid[widget.row][widget.column];
-          _snake = snake;
+    _color = color;
+    widget.controller.addListener(
+      widget.row,
+      widget.column,
+      (List<List<Color>> grid, List<Cell> snake) {
+        var color = grid[widget.row][widget.column];
+        _snake = snake;
+        if (_color != color || color == Colors.white) {
           _updateSnakeIndex();
-          if (_color != color || color == Colors.white) {
-            setState(
-              () => _color = color,
-            );
-          }
-        },
-      );
-    }
+          setState(
+            () => _color = color,
+          );
+        }
+      },
+    );
   }
 
   void _updateSnakeIndex() {
@@ -152,13 +152,16 @@ class _SnakeNodeState extends State<SnakeNode> {
   Widget build(BuildContext context) {
     var text = _snakeIndex == _snake.length - 1 ? 'XX' : '';
     return Container(
-      width: 25,
-      height: 25,
+      width: widget.width,
+      height: widget.height,
       decoration: BoxDecoration(
         color: _color,
         border: _getBoxBorders(),
       ),
-      child: Text(text),
+      child: FittedBox(
+        fit: BoxFit.fitWidth,
+        child: Text(text),
+      ),
     );
   }
 }

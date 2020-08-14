@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:Snake/widgets/snake_grid.dart';
+import 'package:Snake/widgets/snake_settings.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
   runApp(MyApp());
@@ -26,6 +31,7 @@ class MyApp extends StatelessWidget {
         // the app on. For desktop platforms, the controls will be smaller and
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        canvasColor: Colors.transparent,
       ),
       home: MyHomePage(title: 'Snake'),
       debugShowCheckedModeBanner: false,
@@ -55,20 +61,33 @@ class _MyHomePageState extends State<MyHomePage> {
   // int _counter = 0;
   static const int ROWS = 17;
   static const int COLUMNS = 17;
+  static const SnakeSpeed SNAKE_SPEED = SnakeSpeed.medium;
 
+  int _rows;
+  int _columns;
+  SnakeSpeed _snakeSpeed;
   String _snakeKey = 'A';
   int _maxLength = 0;
 
-  // void _incrementCounter() {
-  //   setState(() {
-  //     // This call to setState tells the Flutter framework that something has
-  //     // changed in this State, which causes it to rerun the build method below
-  //     // so that the display can reflect the updated values. If we changed
-  //     // _counter without calling setState(), then the build method would not be
-  //     // called again, and so nothing would appear to happen.
-  //     _counter++;
-  //   });
-  // }
+  // FocusNode _snakeGridFocusNode;
+
+  @override
+  void initState() {
+    _initDefaults();
+    _snakeKey = Uuid().v1();
+    super.initState();
+  }
+
+  void _initDefaults() {
+    _rows = ROWS;
+    _columns = COLUMNS;
+    _snakeSpeed = SNAKE_SPEED;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,26 +104,84 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: SnakeGrid(
-          key: Key(_snakeKey),
-          rows: ROWS,
-          columns: COLUMNS,
-          maxLength: _maxLength,
-          onRestart: (int length) => setState(() {
-            if (length > _maxLength) {
-              _maxLength = length;
-            }
-            _snakeKey = _snakeKey == 'A' ? 'AA' : 'A';
-          }),
+        child: Container(
+          decoration: BoxDecoration(color: Colors.grey[200]),
+          // Center is a layout widget. It takes a single child and positions it
+          // in the middle of the parent.
+          child: SnakeGrid(
+            key: Key(_snakeKey),
+            // focusNode: _snakeGridFocusNode,
+            rows: _rows,
+            columns: _columns,
+            speed: _snakeSpeed,
+            maxLength: _maxLength,
+            onRestart: (int length) => setState(() {
+              if (length > _maxLength) {
+                _maxLength = length;
+              }
+              _snakeKey = Uuid().v1();
+            }),
+            onOpenSettings: () {
+              showCupertinoModalPopup(
+                context: context,
+                builder: (context) {
+                  return Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                      ),
+                      child: SnakeSettings(
+                        defaultRows: ROWS,
+                        defaultColumns: COLUMNS,
+                        defaultSpeed: SNAKE_SPEED,
+                        rows: _rows,
+                        columns: _columns,
+                        speed: _snakeSpeed,
+                        onSettingChange: (
+                          SnakeSettingType type,
+                          Object value,
+                        ) {
+                          switch (type) {
+                            case SnakeSettingType.rows:
+                              _rows = value;
+                              break;
+                            case SnakeSettingType.columns:
+                              _columns = value;
+                              break;
+                            case SnakeSettingType.speed:
+                              _snakeSpeed = value;
+                              break;
+                          }
+                        },
+                        onCancel: () {
+                          Navigator.pop(
+                            context,
+                          );
+                        },
+                        onApply: () {
+                          Navigator.pop(
+                            context,
+                            'Apply',
+                          );
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ).then((value) {
+                if (value == 'Apply') {
+                  Timer(
+                    const Duration(milliseconds: 200),
+                    () => setState(() {
+                      _snakeKey = Uuid().v1();
+                    }),
+                  );
+                }
+              });
+            },
+          ),
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: _incrementCounter,
-      //   tooltip: 'Increment',
-      //   child: Icon(Icons.add),
-      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
