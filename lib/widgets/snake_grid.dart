@@ -167,6 +167,13 @@ class _SnakeGridState extends State<SnakeGrid> {
           _generate.column != newHead.column) {
         if (_whiteNodes[newHead.row][newHead.column] == Colors.white) {
           _lose = true;
+          _snakeNodeController.trigger(
+            _whiteNodes,
+            _snakePositions,
+            _snakePositions.length,
+            widget.maxLength,
+            true,
+          );
           _clearTimers();
           return;
         }
@@ -185,6 +192,7 @@ class _SnakeGridState extends State<SnakeGrid> {
         _snakePositions,
         _snakePositions.length,
         widget.maxLength,
+        false,
       );
     }
   }

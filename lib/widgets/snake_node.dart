@@ -40,6 +40,8 @@ class _SnakeNodeState extends State<SnakeNode> {
   final int _maxRow;
   final int _maxColumn;
 
+  bool _lose = false;
+
   static const double SNAKE_BORDER_WIDTH = 2.5;
   static final Color _snakeBorderColor = Colors.green[700];
 
@@ -54,9 +56,10 @@ class _SnakeNodeState extends State<SnakeNode> {
     widget.controller.addListener(
       widget.row,
       widget.column,
-      (List<List<Color>> grid, List<Cell> snake) {
-        var color = grid[widget.row][widget.column];
+      (List<List<Color>> grid, List<Cell> snake, bool lose) {
         _snake = snake;
+        _lose = lose;
+        var color = grid[widget.row][widget.column];
         if (_color != color || color == Colors.white) {
           _updateSnakeIndex();
           setState(
@@ -148,9 +151,17 @@ class _SnakeNodeState extends State<SnakeNode> {
     }
   }
 
+  bool _isHead() {
+    return _snakeIndex == _snake.length - 1;
+  }
+
+  String _getHeadText() {
+    return _lose ? 'XX' : '00';
+  }
+
   @override
   Widget build(BuildContext context) {
-    var text = _snakeIndex == _snake.length - 1 ? 'XX' : '';
+    var text = _isHead() ? _getHeadText() : '';
     return Container(
       width: widget.width,
       height: widget.height,
