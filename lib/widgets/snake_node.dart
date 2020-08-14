@@ -40,7 +40,7 @@ class _SnakeNodeState extends State<SnakeNode> {
   final int _maxRow;
   final int _maxColumn;
 
-  static const double SNAKE_BORDER_WIDTH = 3.0;
+  static const double SNAKE_BORDER_WIDTH = 2.5;
   static final Color _snakeBorderColor = Colors.green[700];
 
   @override
@@ -57,8 +57,8 @@ class _SnakeNodeState extends State<SnakeNode> {
       (List<List<Color>> grid, List<Cell> snake) {
         var color = grid[widget.row][widget.column];
         _snake = snake;
-        _updateSnakeIndex();
         if (_color != color || color == Colors.white) {
+          _updateSnakeIndex();
           setState(
             () => _color = color,
           );

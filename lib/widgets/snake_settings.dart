@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:numberpicker/numberpicker.dart';
 import 'package:uuid/uuid.dart';
 
 import './snake_grid.dart';
@@ -37,14 +38,21 @@ class _SnakeSettingsState extends State<SnakeSettings> {
   int _columns;
   SnakeSpeed _snakeSpeed;
 
+  bool _blockAxis;
+
   String _rowsKey;
   String _columnsKey;
+
+  static const double CONTAINER_HEIGHT = 50.0;
+  static const int MIN_DIMENSION = 10;
+  static const int MAX_DIMENSION = 40;
 
   @override
   void initState() {
     _rows = widget.rows;
     _columns = widget.columns;
     _snakeSpeed = widget.speed;
+    _blockAxis = _rows == _columns;
     _initKeys();
     super.initState();
   }
@@ -71,38 +79,37 @@ class _SnakeSettingsState extends State<SnakeSettings> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Container(
                               width: 90,
+                              height: CONTAINER_HEIGHT,
                               padding: EdgeInsets.only(right: 20),
                               alignment: Alignment.centerRight,
                               child: Text('Rows'),
                             ),
                             Container(
-                              width: 70,
+                              height: 35,
                               margin: EdgeInsets.all(15),
-                              child: TextFormField(
+                              child: NumberPicker.integer(
                                 key: Key(_rowsKey),
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                    borderSide: BorderSide(),
-                                  ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    vertical: 1,
-                                    horizontal: 15,
-                                  ),
-                                ),
-                                keyboardType: TextInputType.number,
-                                initialValue: _rows.toString(),
+                                scrollDirection: Axis.horizontal,
+                                haptics: true,
+                                listViewWidth: 150,
+                                initialValue: _rows,
+                                minValue: MIN_DIMENSION,
+                                maxValue: MAX_DIMENSION,
                                 onChanged: (val) {
-                                  var intVal = int.parse(val);
-                                  setState(() => _rows = intVal);
+                                  setState(() {
+                                    _rows = val;
+                                    if (_blockAxis) _columns = val;
+                                  });
                                 },
                               ),
                             ),
@@ -113,34 +120,53 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                           children: [
                             Container(
                               width: 90,
+                              height: CONTAINER_HEIGHT,
                               padding: EdgeInsets.only(right: 20),
                               alignment: Alignment.centerRight,
                               child: Text('Columns'),
                             ),
                             Container(
-                              width: 70,
+                              height: 35,
                               margin: EdgeInsets.all(15),
-                              child: TextFormField(
+                              child: NumberPicker.integer(
                                 key: Key(_columnsKey),
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                    borderSide: BorderSide(),
-                                  ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    vertical: 1,
-                                    horizontal: 15,
-                                  ),
-                                ),
-                                keyboardType: TextInputType.number,
-                                initialValue: _columns.toString(),
+                                scrollDirection: Axis.horizontal,
+                                haptics: true,
+                                listViewWidth: 150,
+                                initialValue: _columns,
+                                minValue: MIN_DIMENSION,
+                                maxValue: MAX_DIMENSION,
                                 onChanged: (val) {
-                                  var intVal = int.parse(val);
-                                  setState(() => _columns = intVal);
+                                  setState(() {
+                                    _columns = val;
+                                    if (_blockAxis) _rows = val;
+                                  });
                                 },
                               ),
                             ),
                             Container(width: 30),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 90,
+                              height: CONTAINER_HEIGHT,
+                              padding: EdgeInsets.only(right: 20),
+                              margin: EdgeInsets.only(right: 61),
+                              alignment: Alignment.centerRight,
+                              child: Text('Block axis'),
+                            ),
+                            Container(
+                              // width: 150,
+                              height: CONTAINER_HEIGHT,
+                              child: Switch(
+                                value: _blockAxis,
+                                onChanged: (val) => setState(() {
+                                  _blockAxis = val;
+                                }),
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -151,13 +177,16 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                           children: [
                             Container(
                               width: 70,
+                              height: CONTAINER_HEIGHT,
                               padding: EdgeInsets.only(right: 20),
                               alignment: Alignment.centerRight,
                               child: Text('Speed'),
                             ),
                             Container(
+                              height: 35,
                               margin: EdgeInsets.all(15),
                               child: DropdownButton<SnakeSpeed>(
+                                underline: Container(),
                                 dropdownColor: Colors.white,
                                 items: SnakeSpeed.values.map((SnakeSpeed e) {
                                   var text = '';
@@ -188,7 +217,8 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                         Row(
                           children: [
                             Container(
-                              padding: EdgeInsets.all(15),
+                              height: 65,
+                              padding: EdgeInsets.all(17),
                               child: RaisedButton(
                                 child: Text('Reset defaults'),
                                 onPressed: () => setState(
