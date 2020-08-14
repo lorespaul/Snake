@@ -47,6 +47,12 @@ class _SnakeGridState extends State<SnakeGrid> {
   List<RawKeyEvent> _nextKeys;
   final Random _random = Random();
 
+  double _snakeNodeWidth;
+  double _snakeNodeHeight;
+
+  static const double MAX_WIDTH = 425;
+  static const double MAX_HEIGHT = 425;
+
   @override
   void initState() {
     _init();
@@ -73,7 +79,13 @@ class _SnakeGridState extends State<SnakeGrid> {
       _snakePositions.add(Cell((widget.columns / 2).round(), i));
     }
     _nextKeys = List<RawKeyEvent>();
+    _processDimensions();
     _initTimers();
+  }
+
+  void _processDimensions() {
+    _snakeNodeWidth = MAX_WIDTH / widget.columns;
+    _snakeNodeHeight = MAX_HEIGHT / widget.rows;
   }
 
   void _initTimers() {
@@ -227,6 +239,8 @@ class _SnakeGridState extends State<SnakeGrid> {
                 controller: _snakeNodeController,
                 row: row,
                 column: column,
+                width: _snakeNodeWidth,
+                height: _snakeNodeHeight,
                 grid: _whiteNodes,
                 snake: _snakePositions,
               ),
@@ -237,11 +251,10 @@ class _SnakeGridState extends State<SnakeGrid> {
       widgetRows.add(Row(children: widgetColumns));
     }
 
-    FocusScope.of(context).requestFocus(_focusNode);
+    _focusNode.requestFocus();
     return RawKeyboardListener(
       key: Key('Keyboard${widget.key.toString()}'),
       focusNode: _focusNode,
-      autofocus: true,
       onKey: _keyListener,
       child: Container(
         child: Row(
@@ -368,6 +381,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                           child: Text('Settings'),
                           onPressed: () {
                             if (widget.onOpenSettings != null) {
+                              _clearTimers();
                               widget.onOpenSettings();
                             }
                           },

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:Snake/widgets/snake_grid.dart';
 import 'package:Snake/widgets/snake_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
   runApp(MyApp());
@@ -70,8 +73,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    super.initState();
     _initDefaults();
+    _snakeKey = Uuid().v1();
+    super.initState();
   }
 
   void _initDefaults() {
@@ -82,19 +86,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void dispose() {
-    // if (_snakeGridFocusNode != null) _snakeGridFocusNode.dispose();
     super.dispose();
   }
 
-  // _updateSnakeGridFocusNode(BuildContext context) {
-  //   if (_snakeGridFocusNode != null) _snakeGridFocusNode.dispose();
-  //   _snakeGridFocusNode = FocusNode();
-  //   // FocusScope.of(context).requestFocus(_snakeGridFocusNode);
-  // }
-
   @override
   Widget build(BuildContext context) {
-    // _updateSnakeGridFocusNode(context);
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -123,7 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
               if (length > _maxLength) {
                 _maxLength = length;
               }
-              _snakeKey = _snakeKey == 'A' ? 'AA' : 'A';
+              _snakeKey = Uuid().v1();
             }),
             onOpenSettings: () {
               showCupertinoModalPopup(
@@ -135,6 +131,9 @@ class _MyHomePageState extends State<MyHomePage> {
                         color: Colors.transparent,
                       ),
                       child: SnakeSettings(
+                        defaultRows: ROWS,
+                        defaultColumns: COLUMNS,
+                        defaultSpeed: SNAKE_SPEED,
                         rows: _rows,
                         columns: _columns,
                         speed: _snakeSpeed,
@@ -144,28 +143,45 @@ class _MyHomePageState extends State<MyHomePage> {
                         ) {
                           switch (type) {
                             case SnakeSettingType.rows:
+                              _rows = value;
                               break;
                             case SnakeSettingType.columns:
+                              _columns = value;
                               break;
                             case SnakeSettingType.speed:
+                              _snakeSpeed = value;
                               break;
                           }
                         },
-                        onResetDefault: () {},
+                        onCancel: () {
+                          Navigator.pop(
+                            context,
+                          );
+                        },
+                        onApply: () {
+                          Navigator.pop(
+                            context,
+                            'Apply',
+                          );
+                        },
                       ),
                     ),
                   );
                 },
-              );
+              ).then((value) {
+                if (value == 'Apply') {
+                  Timer(
+                    const Duration(milliseconds: 200),
+                    () => setState(() {
+                      _snakeKey = Uuid().v1();
+                    }),
+                  );
+                }
+              });
             },
           ),
         ),
       ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: _incrementCounter,
-      //   tooltip: 'Increment',
-      //   child: Icon(Icons.add),
-      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

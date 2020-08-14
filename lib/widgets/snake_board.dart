@@ -24,7 +24,10 @@ class _SnakeBoardState extends State<SnakeBoard> {
   void initState() {
     super.initState();
     _length = widget.length;
-    _maxLength = widget.maxLength;
+    if (_length > widget.maxLength)
+      _maxLength = _length;
+    else
+      _maxLength = widget.maxLength;
     if (widget.controller != null) {
       widget.controller.addBoardListener(
         (int length, int maxLength) => setState(
@@ -46,12 +49,12 @@ class _SnakeBoardState extends State<SnakeBoard> {
       children: [
         Container(
           margin: EdgeInsets.only(top: 10),
+          child: Text('Legth: $_length'),
         ),
-        Text('Legth: $_length'),
         Container(
           margin: EdgeInsets.only(top: 5),
+          child: Text('Max legth: $_maxLength'),
         ),
-        Text('Max legth: $_maxLength'),
       ],
     );
   }

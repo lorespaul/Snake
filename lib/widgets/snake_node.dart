@@ -9,12 +9,17 @@ class SnakeNode extends StatefulWidget {
     @required this.controller,
     @required this.row,
     @required this.column,
+    @required this.width,
+    @required this.height,
     @required this.grid,
     @required this.snake,
   }) : super(key: key);
+
   final SnakeNodeController controller;
   final int row;
   final int column;
+  final double width;
+  final double height;
   final List<List<Color>> grid;
   final List<Cell> snake;
 
@@ -147,13 +152,16 @@ class _SnakeNodeState extends State<SnakeNode> {
   Widget build(BuildContext context) {
     var text = _snakeIndex == _snake.length - 1 ? 'XX' : '';
     return Container(
-      width: 25,
-      height: 25,
+      width: widget.width,
+      height: widget.height,
       decoration: BoxDecoration(
         color: _color,
         border: _getBoxBorders(),
       ),
-      child: Text(text),
+      child: FittedBox(
+        fit: BoxFit.fitWidth,
+        child: Text(text),
+      ),
     );
   }
 }

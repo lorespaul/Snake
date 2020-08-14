@@ -1,22 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 import './snake_grid.dart';
 
 class SnakeSettings extends StatefulWidget {
   SnakeSettings({
     Key key,
+    @required this.defaultRows,
+    @required this.defaultColumns,
+    @required this.defaultSpeed,
     @required this.rows,
     @required this.columns,
     @required this.speed,
     @required this.onSettingChange,
-    @required this.onResetDefault,
+    @required this.onCancel,
+    @required this.onApply,
   }) : super(key: key);
+
+  final int defaultRows;
+  final int defaultColumns;
+  final SnakeSpeed defaultSpeed;
 
   final int rows;
   final int columns;
   final SnakeSpeed speed;
   final Function(SnakeSettingType, Object) onSettingChange;
-  final Function onResetDefault;
+  final Function onCancel;
+  final Function onApply;
 
   @override
   _SnakeSettingsState createState() => _SnakeSettingsState();
@@ -27,12 +37,26 @@ class _SnakeSettingsState extends State<SnakeSettings> {
   int _columns;
   SnakeSpeed _snakeSpeed;
 
+  String _rowsKey;
+  String _columnsKey;
+
   @override
   void initState() {
-    super.initState();
     _rows = widget.rows;
     _columns = widget.columns;
     _snakeSpeed = widget.speed;
+    _initKeys();
+    super.initState();
+  }
+
+  _initKeys() {
+    _rowsKey = Uuid().v1();
+    _columnsKey = Uuid().v1();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -63,6 +87,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                               width: 70,
                               margin: EdgeInsets.all(15),
                               child: TextFormField(
+                                key: Key(_rowsKey),
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10.0),
@@ -96,6 +121,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                               width: 70,
                               margin: EdgeInsets.all(15),
                               child: TextFormField(
+                                key: Key(_columnsKey),
                                 decoration: InputDecoration(
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10.0),
@@ -165,7 +191,14 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                               padding: EdgeInsets.all(15),
                               child: RaisedButton(
                                 child: Text('Reset defaults'),
-                                onPressed: widget.onResetDefault,
+                                onPressed: () => setState(
+                                  () {
+                                    _rows = widget.defaultRows;
+                                    _columns = widget.defaultColumns;
+                                    _snakeSpeed = widget.defaultSpeed;
+                                    _initKeys();
+                                  },
+                                ),
                               ),
                             )
                           ],
@@ -177,6 +210,16 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Container(
+                      alignment: Alignment.center,
+                      margin: EdgeInsets.only(top: 30, right: 20),
+                      child: RaisedButton(
+                        child: Text('Cancel'),
+                        onPressed: () {
+                          widget.onCancel();
+                        },
+                      ),
+                    ),
                     Container(
                       alignment: Alignment.center,
                       margin: EdgeInsets.only(top: 30),
@@ -195,6 +238,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                             SnakeSettingType.speed,
                             _snakeSpeed,
                           );
+                          widget.onApply();
                         },
                       ),
                     ),
