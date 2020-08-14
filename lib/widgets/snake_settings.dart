@@ -157,15 +157,14 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                           children: [
                             Container(
                               width: 90,
-                              height: CONTAINER_HEIGHT,
+                              height: 60,
                               padding: EdgeInsets.only(right: 20),
                               margin: EdgeInsets.only(right: 61),
                               alignment: Alignment.centerRight,
                               child: Text('Block axis'),
                             ),
                             Container(
-                              // width: 150,
-                              height: CONTAINER_HEIGHT,
+                              height: 60,
                               child: Switch(
                                 value: _blockAxis,
                                 onChanged: (val) => setState(() {

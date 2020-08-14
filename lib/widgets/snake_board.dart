@@ -1,5 +1,6 @@
 import 'package:Snake/controllers/snake_node_controller.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 class SnakeBoard extends StatefulWidget {
   SnakeBoard({
@@ -17,12 +18,14 @@ class SnakeBoard extends StatefulWidget {
 }
 
 class _SnakeBoardState extends State<SnakeBoard> {
+  int _baseLength;
   int _length;
   int _maxLength;
 
   @override
   void initState() {
     super.initState();
+    _baseLength = widget.length;
     _length = widget.length;
     if (_length > widget.maxLength)
       _maxLength = _length;
@@ -48,12 +51,38 @@ class _SnakeBoardState extends State<SnakeBoard> {
     return Column(
       children: [
         Container(
+          alignment: Alignment.centerRight,
           margin: EdgeInsets.only(top: 10),
-          child: Text('Legth: $_length'),
-        ),
-        Container(
-          margin: EdgeInsets.only(top: 5),
-          child: Text('Max legth: $_maxLength'),
+          child: Row(
+            children: [
+              Container(
+                width: 15,
+                height: 15,
+                margin: EdgeInsets.only(right: 10),
+                decoration: BoxDecoration(
+                  color: Colors.red[300],
+                  border: Border.all(color: Colors.red[600], width: 2.5),
+                ),
+              ),
+              Container(
+                width: 25,
+                margin: EdgeInsets.only(right: 5),
+                child: Text('${_length - _baseLength}'),
+              ),
+              Container(
+                margin: EdgeInsets.only(right: 10),
+                child: Icon(
+                  Icons.favorite,
+                  color: Colors.amber[300],
+                  size: 20,
+                ),
+              ),
+              Container(
+                width: 25,
+                child: Text('${_maxLength - _baseLength}'),
+              ),
+            ],
+          ),
         ),
       ],
     );

@@ -291,11 +291,11 @@ class _SnakeGridState extends State<SnakeGrid> {
                           child: Row(
                             children: [
                               Container(
-                                width: 60,
+                                width: 55,
                                 child: Text('Left'),
                               ),
                               Container(
-                                width: 10,
+                                width: 15,
                                 child: Text('J'),
                               ),
                               Container(
@@ -304,7 +304,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                               ),
                               Icon(
                                 Icons.arrow_back,
-                                color: Colors.black,
+                                color: Colors.grey[700],
                                 size: 18,
                               )
                             ],
@@ -315,11 +315,11 @@ class _SnakeGridState extends State<SnakeGrid> {
                           child: Row(
                             children: [
                               Container(
-                                width: 60,
+                                width: 55,
                                 child: Text('Up'),
                               ),
                               Container(
-                                width: 10,
+                                width: 15,
                                 child: Text('I'),
                               ),
                               Container(
@@ -328,7 +328,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                               ),
                               Icon(
                                 Icons.arrow_upward,
-                                color: Colors.black,
+                                color: Colors.grey[700],
                                 size: 18,
                               )
                             ],
@@ -339,11 +339,11 @@ class _SnakeGridState extends State<SnakeGrid> {
                           child: Row(
                             children: [
                               Container(
-                                width: 60,
+                                width: 55,
                                 child: Text('Right'),
                               ),
                               Container(
-                                width: 10,
+                                width: 15,
                                 child: Text('L'),
                               ),
                               Container(
@@ -352,7 +352,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                               ),
                               Icon(
                                 Icons.arrow_forward,
-                                color: Colors.black,
+                                color: Colors.grey[700],
                                 size: 18,
                               )
                             ],
@@ -363,11 +363,11 @@ class _SnakeGridState extends State<SnakeGrid> {
                           child: Row(
                             children: [
                               Container(
-                                width: 60,
+                                width: 55,
                                 child: Text('Down'),
                               ),
                               Container(
-                                width: 10,
+                                width: 15,
                                 child: Text('K'),
                               ),
                               Container(
@@ -376,7 +376,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                               ),
                               Icon(
                                 Icons.arrow_downward,
-                                color: Colors.black,
+                                color: Colors.grey[700],
                                 size: 18,
                               )
                             ],
