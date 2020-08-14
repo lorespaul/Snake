@@ -74,7 +74,8 @@ class _SnakeNodeState extends State<SnakeNode> {
     _snakeIndex = _snake.indexOf(_cell);
   }
 
-  BorderSide _getBorderSide(_Side side, Cell previous, Cell next) {
+  BorderSide _getBorderSide(
+      _Side side, Cell previous, Cell next, Color background) {
     var white = false;
     switch (side) {
       case _Side.top:
@@ -119,7 +120,7 @@ class _SnakeNodeState extends State<SnakeNode> {
         break;
     }
     if (white) {
-      return BorderSide(color: Colors.white, width: 0);
+      return BorderSide(color: background, width: 0);
     }
     return BorderSide(
       color: _snakeBorderColor,
@@ -127,16 +128,16 @@ class _SnakeNodeState extends State<SnakeNode> {
     );
   }
 
-  BoxBorder _getBoxBorders() {
+  BoxBorder _getBoxBorders(Color background) {
     if (_snakeIndex != -1) {
       var previous = _snakeIndex - 1 >= 0 ? _snake[_snakeIndex - 1] : null;
       var next =
           _snakeIndex + 1 < _snake.length ? _snake[_snakeIndex + 1] : null;
       return Border(
-        top: _getBorderSide(_Side.top, previous, next),
-        bottom: _getBorderSide(_Side.bottom, previous, next),
-        left: _getBorderSide(_Side.left, previous, next),
-        right: _getBorderSide(_Side.right, previous, next),
+        top: _getBorderSide(_Side.top, previous, next, background),
+        bottom: _getBorderSide(_Side.bottom, previous, next, background),
+        left: _getBorderSide(_Side.left, previous, next, background),
+        right: _getBorderSide(_Side.right, previous, next, background),
       );
     } else if (_color == Colors.red[300]) {
       return Border.all(
@@ -155,23 +156,26 @@ class _SnakeNodeState extends State<SnakeNode> {
     return _snakeIndex == _snake.length - 1;
   }
 
-  String _getHeadText() {
-    return _lose ? 'XX' : '00';
-  }
-
   @override
   Widget build(BuildContext context) {
-    var text = _isHead() ? _getHeadText() : '';
+    var text = _isHead() ? 'XX' : '';
+    var background =
+        _color == Colors.white ? !_lose ? _color : Colors.red[200] : _color;
     return Container(
       width: widget.width,
       height: widget.height,
       decoration: BoxDecoration(
-        color: _color,
-        border: _getBoxBorders(),
+        color: background,
+        border: _getBoxBorders(background),
       ),
       child: FittedBox(
         fit: BoxFit.fitWidth,
-        child: Text(text),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: !_lose ? Colors.black : Colors.red[600],
+          ),
+        ),
       ),
     );
   }
