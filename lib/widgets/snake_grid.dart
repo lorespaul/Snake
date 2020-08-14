@@ -68,7 +68,7 @@ class _SnakeGridState extends State<SnakeGrid> {
       widget.rows,
       (i) => List.generate(
         widget.columns,
-        (n) => i == (widget.columns / 2).round() && _initialSnake.contains(n)
+        (n) => i == (widget.rows / 2).round() && _initialSnake.contains(n)
             ? Colors.white
             : Colors.black,
       ),
@@ -76,7 +76,7 @@ class _SnakeGridState extends State<SnakeGrid> {
     _direction = Direction.none;
     _snakePositions = List<Cell>();
     for (int i in _initialSnake) {
-      _snakePositions.add(Cell((widget.columns / 2).round(), i));
+      _snakePositions.add(Cell((widget.rows / 2).round(), i));
     }
     _nextKeys = List<RawKeyEvent>();
     _processDimensions();
