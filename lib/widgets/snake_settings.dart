@@ -232,6 +232,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                                     _rows = widget.defaultRows;
                                     _columns = widget.defaultColumns;
                                     _snakeSpeed = widget.defaultSpeed;
+                                    _blockAxis = true;
                                     _initKeys();
                                   },
                                 ),
