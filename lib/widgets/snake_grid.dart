@@ -50,8 +50,8 @@ class _SnakeGridState extends State<SnakeGrid> {
   double _snakeNodeWidth;
   double _snakeNodeHeight;
 
-  static const double MAX_WIDTH = 425;
-  static const double MAX_HEIGHT = 425;
+  static const double MAX_WIDTH = 550;
+  static const double MAX_HEIGHT = 550;
 
   @override
   void initState() {
@@ -84,8 +84,16 @@ class _SnakeGridState extends State<SnakeGrid> {
   }
 
   void _processDimensions() {
-    _snakeNodeWidth = MAX_WIDTH / widget.columns;
-    _snakeNodeHeight = MAX_HEIGHT / widget.rows;
+    if (widget.columns > widget.rows) {
+      _snakeNodeWidth = MAX_WIDTH / widget.columns;
+      _snakeNodeHeight = _snakeNodeWidth;
+    } else if (widget.columns < widget.rows) {
+      _snakeNodeHeight = MAX_WIDTH / widget.rows;
+      _snakeNodeWidth = _snakeNodeHeight;
+    } else {
+      _snakeNodeWidth = MAX_WIDTH / widget.columns;
+      _snakeNodeHeight = MAX_HEIGHT / widget.rows;
+    }
   }
 
   void _initTimers() {

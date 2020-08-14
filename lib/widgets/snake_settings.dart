@@ -108,7 +108,10 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                                 onChanged: (val) {
                                   setState(() {
                                     _rows = val;
-                                    if (_blockAxis) _columns = val;
+                                    if (_blockAxis) {
+                                      _columns = val;
+                                      _columnsKey = Uuid().v1();
+                                    }
                                   });
                                 },
                               ),
@@ -139,7 +142,10 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                                 onChanged: (val) {
                                   setState(() {
                                     _columns = val;
-                                    if (_blockAxis) _rows = val;
+                                    if (_blockAxis) {
+                                      _rows = val;
+                                      _rowsKey = Uuid().v1();
+                                    }
                                   });
                                 },
                               ),
