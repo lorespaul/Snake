@@ -23,7 +23,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   flutter::DartProject project(L"data");
   FlutterWindow window(&run_loop, project);
-  Win32Window::Point origin(kFlutterWindowOriginX, kFlutterWindowOriginY);
+  Win32Window::Point origin(kFlutterWindowOriginX+100, kFlutterWindowOriginY+100);
   Win32Window::Size size(kFlutterWindowWidth, kFlutterWindowHeight);
   if (!window.CreateAndShow(kFlutterWindowTitle, origin, size)) {
     return EXIT_FAILURE;
