@@ -32,13 +32,12 @@ class SnakeGrid extends StatefulWidget {
   _SnakeGridState createState() => _SnakeGridState();
 }
 
-class _SnakeGridState extends State<SnakeGrid>
-    with SingleTickerProviderStateMixin {
+class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
   FocusNode _focusNode;
   List<List<Color>> _whiteNodes;
   List<Cell> _snakePositions;
   Direction _direction;
-  Timer _movingTimer;
+  // Timer _movingTimer;
   Timer _generateTimer;
   Cell _generate;
   int _generationCounter = 0;
@@ -48,13 +47,15 @@ class _SnakeGridState extends State<SnakeGrid>
   List<RawKeyEvent> _nextKeys;
   final Random _random = Random();
 
+  AnimationController _animationController;
+
   double _snakeNodeWidth;
   double _snakeNodeHeight;
+  // int _nodeDivisions;
+  // static const int NODE_DIVISOR = 5;
 
   static const double MAX_WIDTH = 550;
   static const double MAX_HEIGHT = 550;
-
-  AnimationController _animationController;
 
   @override
   void initState() {
@@ -83,10 +84,6 @@ class _SnakeGridState extends State<SnakeGrid>
     }
     _nextKeys = List<RawKeyEvent>();
     _processDimensions();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: _getSnakeSpeed()),
-    );
     _initTimers();
   }
 
@@ -101,17 +98,24 @@ class _SnakeGridState extends State<SnakeGrid>
       _snakeNodeWidth = MAX_WIDTH / widget.columns;
       _snakeNodeHeight = MAX_HEIGHT / widget.rows;
     }
+    // _nodeDivisions = (_snakeNodeWidth / NODE_DIVISOR).floor();
   }
 
   void _initTimers() {
     if (!_lose) {
-      if (_movingTimer == null) {
-        _movingTimer = Timer.periodic(
-          Duration(milliseconds: _getSnakeSpeed()),
-          (timer) {
-            _moveSnake();
-          },
-        );
+      if (_animationController == null) {
+        // _movingTimer = Timer.periodic(
+        //   _getSnakeSpeed(),
+        //   (timer) {
+        //     _moveSnake();
+        //   },
+        // );
+        _animationController = AnimationController(
+          vsync: this,
+          duration: Duration(milliseconds: _getSnakeSpeed()),
+        )
+          ..addListener(() => _animateSnake(_animationController.value))
+          ..addStatusListener((AnimationStatus status) => _moveSnake(status));
       }
       if (_generateTimer == null) {
         _generateTimer = Timer.periodic(
@@ -122,7 +126,6 @@ class _SnakeGridState extends State<SnakeGrid>
         );
       }
     }
-    _animationController.repeat();
   }
 
   int _getSnakeSpeed() {
@@ -137,7 +140,7 @@ class _SnakeGridState extends State<SnakeGrid>
     return 100;
   }
 
-  void _moveSnake() {
+  void _animateSnake(double animationValue) {
     if (_nextKeys.isNotEmpty) {
       var next = _nextKeys.first;
       _nextKeys.removeAt(0);
@@ -169,40 +172,56 @@ class _SnakeGridState extends State<SnakeGrid>
       case Direction.none:
         return;
     }
-    if (newHead != null) {
-      if (_generate == null ||
-          _generate.row != newHead.row ||
-          _generate.column != newHead.column) {
-        if (_whiteNodes[newHead.row][newHead.column] == Colors.white) {
-          _lose = true;
-          _snakeNodeController.trigger(
-            _whiteNodes,
-            _snakePositions,
-            _snakePositions.length,
-            widget.maxLength,
-            true,
-          );
-          _clearTimers();
-          return;
+
+    if (_animationController.isCompleted) {
+      if (newHead != null) {
+        if (_generate == null ||
+            _generate.row != newHead.row ||
+            _generate.column != newHead.column) {
+          if (_whiteNodes[newHead.row][newHead.column] == Colors.white) {
+            _lose = true;
+            _snakeNodeController.trigger(
+              _whiteNodes,
+              _snakePositions,
+              _snakePositions.length,
+              widget.maxLength,
+              true,
+            );
+            _clearTimers();
+            return;
+          }
+
+          _snakePositions.removeAt(0);
+          _whiteNodes[tail.row][tail.column] = Colors.black;
+        } else {
+          _generationCounter = 0;
+          _generate = null;
         }
-
-        _snakePositions.removeAt(0);
-        _whiteNodes[tail.row][tail.column] = Colors.black;
-      } else {
-        _generationCounter = 0;
-        _generate = null;
+        _snakePositions.add(newHead);
       }
-      _snakePositions.add(newHead);
-
       _whiteNodes[newHead.row][newHead.column] = Colors.white;
-      _snakeNodeController.trigger(
-        _whiteNodes,
-        _snakePositions,
-        _snakePositions.length,
-        widget.maxLength,
-        false,
-      );
     }
+
+    _snakeNodeController.trigger(
+      _whiteNodes,
+      _snakePositions,
+      _snakePositions.length,
+      widget.maxLength,
+      false,
+      animationValue: animationValue,
+    );
+
+    if (_animationController.isCompleted) {
+      _animationController.reset();
+      _animationController.forward();
+    }
+  }
+
+  void _moveSnake(AnimationStatus animationStatus) {
+    // if (animationStatus == AnimationStatus.completed) {
+    //   _animationController.reset();
+    //   _animationController.forward();
+    // }
   }
 
   void _restart() {
@@ -234,15 +253,16 @@ class _SnakeGridState extends State<SnakeGrid>
   void dispose() {
     _clearTimers();
     _focusNode.dispose();
-    _animationController.dispose();
     super.dispose();
   }
 
   void _clearTimers() {
-    if (_movingTimer != null) _movingTimer.cancel();
+    if (_animationController != null) {
+      _animationController.stop();
+      _animationController.dispose();
+    }
     if (_generateTimer != null) _generateTimer.cancel();
-    _animationController.stop();
-    _movingTimer = null;
+    _animationController = null;
     _generateTimer = null;
   }
 
@@ -269,7 +289,6 @@ class _SnakeGridState extends State<SnakeGrid>
                 height: _snakeNodeHeight,
                 grid: _whiteNodes,
                 snake: _snakePositions,
-                animationController: _animationController,
               ),
             ],
           ),
@@ -463,12 +482,13 @@ class _SnakeGridState extends State<SnakeGrid>
       if (event.logicalKey == LogicalKeyboardKey.space) {
         if (_lose) {
           _restart();
-        } else if (_movingTimer == null)
+        } else if (_animationController == null)
           _initTimers();
         else
           _clearTimers();
         return;
-      } else if (_movingTimer != null) {
+      } else if (_animationController != null) {
+        if (_direction == Direction.none) _animationController.forward();
         if (_nextKeys.isEmpty || _nextKeys.last != event) _nextKeys.add(event);
       }
     }

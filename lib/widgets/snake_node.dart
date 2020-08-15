@@ -13,7 +13,6 @@ class SnakeNode extends StatefulWidget {
     @required this.height,
     @required this.grid,
     @required this.snake,
-    @required this.animationController,
   }) : super(key: key);
 
   final SnakeNodeController controller;
@@ -23,7 +22,6 @@ class SnakeNode extends StatefulWidget {
   final double height;
   final List<List<Color>> grid;
   final List<Cell> snake;
-  final AnimationController animationController;
 
   @override
   _SnakeNodeState createState() =>
@@ -43,6 +41,7 @@ class _SnakeNodeState extends State<SnakeNode> {
   final int _maxColumn;
 
   bool _lose = false;
+  double _animationValue;
 
   static const double SNAKE_BORDER_WIDTH = 2.5;
   static final Color _snakeBorderColor = Colors.green[700];
@@ -52,15 +51,22 @@ class _SnakeNodeState extends State<SnakeNode> {
     super.initState();
     _grid = widget.grid;
     _snake = widget.snake;
+    _animationValue = 0.0;
     _updateSnakeIndex();
     var color = _grid[widget.row][widget.column];
     _color = color;
     widget.controller.addListener(
       widget.row,
       widget.column,
-      (List<List<Color>> grid, List<Cell> snake, bool lose) {
+      (
+        List<List<Color>> grid,
+        List<Cell> snake,
+        bool lose,
+        double animationValue,
+      ) {
         _snake = snake;
         _lose = lose;
+        _animationValue = animationValue;
         var color = grid[widget.row][widget.column];
         if (_color != color || color == Colors.white || _isNextHead()) {
           _updateSnakeIndex();
@@ -182,53 +188,43 @@ class _SnakeNodeState extends State<SnakeNode> {
 
     final text = '';
     final background = _color == Colors.white || snakeSide == SnakeSide.nextHead
-        ? !_lose ? Colors.white : Colors.red[200]
+        ? !_lose
+            ?
+            // snakeSide == SnakeSide.nextHead ? _snakeBorderColor :
+            Colors.white
+            : Colors.red[200]
         : _color;
 
     final borders = _getBoxBorders(background);
-    var container = Container(
-      width: widget.width,
-      height: widget.height,
-      decoration: BoxDecoration(
-        color: background,
-        border: borders,
-      ),
-      child: FittedBox(
-        fit: BoxFit.fitWidth,
-        child: Text(
-          text,
-          style: TextStyle(
-            color: !_lose ? Colors.black : Colors.red[600],
+    var container = Positioned(
+      left: _isTail() ? (_animationValue * widget.width) : 0,
+      right: _isHead()
+          ? -(_animationValue * widget.width)
+          : _isNextHead() ? widget.width - (_animationValue * widget.width) : 0,
+      child: Container(
+        width: widget.width,
+        height: widget.height,
+        decoration: BoxDecoration(
+          color: background,
+          border: borders,
+        ),
+        child: FittedBox(
+          fit: BoxFit.fitWidth,
+          child: Text(
+            text,
+            style: TextStyle(
+              color: !_lose ? Colors.black : Colors.red[600],
+            ),
           ),
         ),
       ),
     );
 
-    Widget content;
-    if (snakeSide != SnakeSide.none) {
-      content = CustomPaint(
-        foregroundPainter: SnakeNodePainter(
-          borderLeft: borders.left,
-          borderTop: borders.top,
-          borderRight: borders.right,
-          borderBottom: borders.bottom,
-          snakeSide: snakeSide,
-          controller: widget.animationController,
-        ),
-        // duration: widget.duration,
-        // left: _isTail() ? 10 : 0,
-        // right: _isHead() ? -10 : _isNextHead() ? widget.width - 10 : 0,
-        // child: container,
-      );
-    } else {
-      content = container;
-    }
-
     return Container(
       width: widget.width,
       height: widget.height,
       child: Stack(
-        children: [content],
+        children: [container],
       ),
     );
   }
@@ -246,57 +242,4 @@ enum SnakeSide {
   tail,
   head,
   nextHead,
-}
-
-class SnakeNodePainter extends CustomPainter {
-  SnakeNodePainter({
-    @required this.borderLeft,
-    @required this.borderTop,
-    @required this.borderRight,
-    @required this.borderBottom,
-    @required this.snakeSide,
-    @required this.controller,
-  }) : super(repaint: controller);
-
-  final BorderSide borderLeft;
-  final BorderSide borderTop;
-  final BorderSide borderRight;
-  final BorderSide borderBottom;
-  final SnakeSide snakeSide;
-  final AnimationController controller;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    Rect rect;
-    switch (snakeSide) {
-      case SnakeSide.tail:
-        rect = Rect.fromLTRB(controller.value * size.width, 0, 0, 0);
-        break;
-      case SnakeSide.head:
-        // rect = Offset(controller.value * size.width, 0) &
-        //     Size((1 - controller.value) * size.width, size.height);
-        rect = Rect.fromLTRB(0, 0, -(controller.value * size.width), 0);
-        break;
-      case SnakeSide.nextHead:
-        // rect = Offset(0 - ((1 - controller.value) * size.width), 0) & size;
-        rect = Rect.fromLTRB(0, 0, ((1 - controller.value) * size.width), 0);
-        break;
-      case SnakeSide.none:
-        throw Exception("Invalid snake side none in snake node painter!");
-    }
-    // final rect = Offset(0, 0) & size;
-    paintBorder(
-      canvas,
-      rect,
-      left: borderLeft,
-      top: borderTop,
-      right: borderRight,
-      bottom: borderBottom,
-    );
-    final paint = Paint()..color = Colors.white;
-    canvas.drawRect(rect, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
