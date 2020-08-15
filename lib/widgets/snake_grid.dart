@@ -140,6 +140,8 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
     return 100;
   }
 
+  int _animationTurn = 0;
+
   void _animateSnake(double animationValue) {
     if (_nextKeys.isNotEmpty) {
       var next = _nextKeys.first;
@@ -173,7 +175,8 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
         return;
     }
 
-    if (_animationController.isCompleted) {
+    // if (_animationController.isCompleted) {
+    if (_animationTurn == 0) {
       if (newHead != null) {
         if (_generate == null ||
             _generate.row != newHead.row ||
@@ -186,6 +189,8 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
               _snakePositions.length,
               widget.maxLength,
               true,
+              0.0,
+              Direction.none,
             );
             _clearTimers();
             return;
@@ -201,19 +206,25 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
       }
       _whiteNodes[newHead.row][newHead.column] = Colors.white;
     }
-
+    _animationTurn++;
     _snakeNodeController.trigger(
       _whiteNodes,
       _snakePositions,
       _snakePositions.length,
       widget.maxLength,
       false,
-      animationValue: animationValue,
+      animationValue,
+      _direction,
     );
 
     if (_animationController.isCompleted) {
-      _animationController.reset();
-      _animationController.forward();
+      _animationTurn = 0;
+      try {
+        _animationController.reset();
+        _animationController.forward();
+      } catch (e) {
+        // print(e);
+      }
     }
   }
 

@@ -42,6 +42,8 @@ class _SnakeNodeState extends State<SnakeNode> {
 
   bool _lose = false;
   double _animationValue;
+  SnakeSide _snakeSide;
+  Direction _direction;
 
   static const double SNAKE_BORDER_WIDTH = 2.5;
   static final Color _snakeBorderColor = Colors.green[700];
@@ -52,7 +54,9 @@ class _SnakeNodeState extends State<SnakeNode> {
     _grid = widget.grid;
     _snake = widget.snake;
     _animationValue = 0.0;
+    _direction = Direction.none;
     _updateSnakeIndex();
+    _updateSnakeSide();
     var color = _grid[widget.row][widget.column];
     _color = color;
     widget.controller.addListener(
@@ -63,12 +67,18 @@ class _SnakeNodeState extends State<SnakeNode> {
         List<Cell> snake,
         bool lose,
         double animationValue,
+        Direction direction,
       ) {
         _snake = snake;
         _lose = lose;
         _animationValue = animationValue;
+        if (_color == Colors.black) _direction = Direction.none;
+        if (_isHead() || _isNextHead(direction)) _direction = direction;
+        _updateSnakeSide();
         var color = grid[widget.row][widget.column];
-        if (_color != color || color == Colors.white || _isNextHead()) {
+        if (_color != color ||
+            color == Colors.white ||
+            _snakeSide == SnakeSide.nextHead) {
           _updateSnakeIndex();
           setState(
             () => _color = color,
@@ -80,6 +90,46 @@ class _SnakeNodeState extends State<SnakeNode> {
 
   void _updateSnakeIndex() {
     _snakeIndex = _snake.indexOf(_cell);
+  }
+
+  void _updateSnakeSide() {
+    _snakeSide = _isTail()
+        ? SnakeSide.tail
+        : _isHead()
+            ? SnakeSide.head
+            : _isNextHead(_direction) ? SnakeSide.nextHead : SnakeSide.none;
+  }
+
+  bool _isHead() {
+    return _snakeIndex == _snake.length - 1;
+  }
+
+  bool _isNextHead(Direction direction) {
+    var head = _snake.last;
+    switch (direction) {
+      case Direction.left:
+        return widget.row == head.row &&
+            (widget.column == head.column - 1 ||
+                (head.column == 0 && widget.column == _maxColumn));
+      case Direction.up:
+        return widget.column == head.column &&
+            (widget.row == head.row - 1 ||
+                (head.row == 0 && widget.row == _maxRow));
+      case Direction.right:
+        return widget.row == head.row &&
+            (widget.column == head.column + 1 ||
+                (head.column == _maxColumn && widget.column == 0));
+      case Direction.down:
+        return widget.column == head.column &&
+            (widget.row == head.row + 1 ||
+                (head.row == _maxRow && widget.row == 0));
+      default:
+        return false;
+    }
+  }
+
+  bool _isTail() {
+    return _snakeIndex == 0;
   }
 
   BorderSide _getBorderSide(
@@ -136,10 +186,10 @@ class _SnakeNodeState extends State<SnakeNode> {
     );
   }
 
-  Border _getBoxBorders(Color background) {
-    if (_snakeIndex != -1 || _isNextHead()) {
+  Border _getBorders(Color background) {
+    if (_snakeIndex != -1 || _snakeSide == SnakeSide.nextHead) {
       Cell previous, next;
-      if (_isNextHead()) {
+      if (_snakeSide == SnakeSide.nextHead) {
         previous = _snake.last;
       } else {
         previous = _snakeIndex - 1 >= 0 ? _snake[_snakeIndex - 1] : null;
@@ -164,43 +214,66 @@ class _SnakeNodeState extends State<SnakeNode> {
     }
   }
 
-  bool _isHead() {
-    return _snakeIndex == _snake.length - 1;
-  }
-
-  bool _isNextHead() {
-    var head = _snake.last;
-    return widget.row == head.row && widget.column == head.column + 1;
-  }
-
-  bool _isTail() {
-    return _snakeIndex == 0;
+  double _getDistance(_Side side) {
+    double result = 0.0;
+    switch (_snakeSide) {
+      case SnakeSide.tail:
+        if ((side == _Side.left && _direction == Direction.right) ||
+            (side == _Side.right && _direction == Direction.left)) {
+          result = _animationValue * widget.width;
+        } else if ((side == _Side.top && _direction == Direction.down) ||
+            (side == _Side.bottom && _direction == Direction.up)) {
+          result = _animationValue * widget.height;
+        }
+        break;
+      case SnakeSide.head:
+        if ((side == _Side.left && _direction == Direction.left) ||
+            (side == _Side.right && _direction == Direction.right)) {
+          result = -(_animationValue * widget.width);
+        } else if ((side == _Side.top && _direction == Direction.up) ||
+            (side == _Side.bottom && _direction == Direction.down)) {
+          result = -(_animationValue * widget.height);
+        }
+        break;
+      case SnakeSide.nextHead:
+        if ((side == _Side.left && _direction == Direction.left) ||
+            (side == _Side.right && _direction == Direction.right)) {
+          result = widget.width - (_animationValue * widget.width);
+        } else if ((side == _Side.top && _direction == Direction.up) ||
+            (side == _Side.bottom && _direction == Direction.down)) {
+          result = widget.height - (_animationValue * widget.height);
+        }
+        break;
+      default:
+        break;
+    }
+    return result;
   }
 
   @override
   Widget build(BuildContext context) {
     // var text = _isHead() || _isNextHead() ? 'XX' : '';
-    final snakeSide = _isTail()
-        ? SnakeSide.tail
-        : _isHead()
-            ? SnakeSide.head
-            : _isNextHead() ? SnakeSide.nextHead : SnakeSide.none;
 
     final text = '';
-    final background = _color == Colors.white || snakeSide == SnakeSide.nextHead
-        ? !_lose
-            ?
-            // snakeSide == SnakeSide.nextHead ? _snakeBorderColor :
-            Colors.white
-            : Colors.red[200]
-        : _color;
+    final background =
+        _color == Colors.white || _snakeSide == SnakeSide.nextHead
+            ? !_lose
+                ?
+                // snakeSide == SnakeSide.nextHead ? _snakeBorderColor :
+                Colors.white
+                : Colors.red[200]
+            : _color;
 
-    final borders = _getBoxBorders(background);
+    final borders = _getBorders(background);
     var container = Positioned(
-      left: _isTail() ? (_animationValue * widget.width) : 0,
-      right: _isHead()
-          ? -(_animationValue * widget.width)
-          : _isNextHead() ? widget.width - (_animationValue * widget.width) : 0,
+      // left: _isTail() ? (_animationValue * widget.width) : 0,
+      // right: _isHead()
+      //     ? -(_animationValue * widget.width)
+      //     : _isNextHead() ? widget.width - (_animationValue * widget.width) : 0,
+      left: _getDistance(_Side.left),
+      top: _getDistance(_Side.top),
+      right: _getDistance(_Side.right),
+      bottom: _getDistance(_Side.bottom),
       child: Container(
         width: widget.width,
         height: widget.height,
