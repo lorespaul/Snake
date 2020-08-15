@@ -13,6 +13,7 @@ class SnakeNode extends StatefulWidget {
     @required this.height,
     @required this.grid,
     @required this.snake,
+    this.direction = Direction.none,
   }) : super(key: key);
 
   final SnakeNodeController controller;
@@ -22,6 +23,7 @@ class SnakeNode extends StatefulWidget {
   final double height;
   final List<List<Color>> grid;
   final List<Cell> snake;
+  final Direction direction;
 
   @override
   _SnakeNodeState createState() =>
@@ -45,6 +47,9 @@ class _SnakeNodeState extends State<SnakeNode> {
   SnakeSide _snakeSide;
   Direction _direction;
 
+  bool _init = true;
+  bool _keepTail = false;
+
   static const double SNAKE_BORDER_WIDTH = 2.5;
   static final Color _snakeBorderColor = Colors.green[700];
 
@@ -54,9 +59,9 @@ class _SnakeNodeState extends State<SnakeNode> {
     _grid = widget.grid;
     _snake = widget.snake;
     _animationValue = 0.0;
-    _direction = Direction.none;
     _updateSnakeIndex();
     _updateSnakeSide();
+    _direction = _isHead() ? widget.direction : Direction.none;
     var color = _grid[widget.row][widget.column];
     _color = color;
     widget.controller.addListener(
@@ -67,19 +72,23 @@ class _SnakeNodeState extends State<SnakeNode> {
         List<Cell> snake,
         bool lose,
         double animationValue,
+        bool animationCompleted,
+        bool keepTail,
         Direction direction,
       ) {
         _snake = snake;
         _lose = lose;
         _animationValue = animationValue;
+        _keepTail = keepTail;
         if (_color == Colors.black) _direction = Direction.none;
-        if (_isHead() || _isNextHead(direction)) _direction = direction;
-        _updateSnakeSide();
         var color = grid[widget.row][widget.column];
-        if (_color != color ||
-            color == Colors.white ||
-            _snakeSide == SnakeSide.nextHead) {
+        if (_color != color || color == Colors.white) {
           _updateSnakeIndex();
+          _updateSnakeSide();
+          if (_snakeSide == SnakeSide.head &&
+              (_direction == Direction.none || animationCompleted)) {
+            _direction = direction;
+          }
           setState(
             () => _color = color,
           );
@@ -97,35 +106,15 @@ class _SnakeNodeState extends State<SnakeNode> {
         ? SnakeSide.tail
         : _isHead()
             ? SnakeSide.head
-            : _isNextHead(_direction) ? SnakeSide.nextHead : SnakeSide.none;
+            : _isPreHead() ? SnakeSide.preHead : SnakeSide.none;
   }
 
   bool _isHead() {
     return _snakeIndex == _snake.length - 1;
   }
 
-  bool _isNextHead(Direction direction) {
-    var head = _snake.last;
-    switch (direction) {
-      case Direction.left:
-        return widget.row == head.row &&
-            (widget.column == head.column - 1 ||
-                (head.column == 0 && widget.column == _maxColumn));
-      case Direction.up:
-        return widget.column == head.column &&
-            (widget.row == head.row - 1 ||
-                (head.row == 0 && widget.row == _maxRow));
-      case Direction.right:
-        return widget.row == head.row &&
-            (widget.column == head.column + 1 ||
-                (head.column == _maxColumn && widget.column == 0));
-      case Direction.down:
-        return widget.column == head.column &&
-            (widget.row == head.row + 1 ||
-                (head.row == _maxRow && widget.row == 0));
-      default:
-        return false;
-    }
+  bool _isPreHead() {
+    return _snakeIndex == _snake.length - 2;
   }
 
   bool _isTail() {
@@ -187,14 +176,10 @@ class _SnakeNodeState extends State<SnakeNode> {
   }
 
   Border _getBorders(Color background) {
-    if (_snakeIndex != -1 || _snakeSide == SnakeSide.nextHead) {
+    if (_snakeIndex != -1) {
       Cell previous, next;
-      if (_snakeSide == SnakeSide.nextHead) {
-        previous = _snake.last;
-      } else {
-        previous = _snakeIndex - 1 >= 0 ? _snake[_snakeIndex - 1] : null;
-        next = _snakeIndex + 1 < _snake.length ? _snake[_snakeIndex + 1] : null;
-      }
+      previous = _snakeIndex - 1 >= 0 ? _snake[_snakeIndex - 1] : null;
+      next = _snakeIndex + 1 < _snake.length ? _snake[_snakeIndex + 1] : null;
       return Border(
         top: _getBorderSide(_Side.top, previous, next, background),
         bottom: _getBorderSide(_Side.bottom, previous, next, background),
@@ -218,6 +203,9 @@ class _SnakeNodeState extends State<SnakeNode> {
     double result = 0.0;
     switch (_snakeSide) {
       case SnakeSide.tail:
+        if (_keepTail) {
+          break;
+        }
         if ((side == _Side.left && _direction == Direction.right) ||
             (side == _Side.right && _direction == Direction.left)) {
           result = _animationValue * widget.width;
@@ -226,7 +214,7 @@ class _SnakeNodeState extends State<SnakeNode> {
           result = _animationValue * widget.height;
         }
         break;
-      case SnakeSide.head:
+      case SnakeSide.preHead:
         if ((side == _Side.left && _direction == Direction.left) ||
             (side == _Side.right && _direction == Direction.right)) {
           result = -(_animationValue * widget.width);
@@ -235,7 +223,7 @@ class _SnakeNodeState extends State<SnakeNode> {
           result = -(_animationValue * widget.height);
         }
         break;
-      case SnakeSide.nextHead:
+      case SnakeSide.head:
         if ((side == _Side.left && _direction == Direction.left) ||
             (side == _Side.right && _direction == Direction.right)) {
           result = widget.width - (_animationValue * widget.width);
@@ -254,15 +242,13 @@ class _SnakeNodeState extends State<SnakeNode> {
   Widget build(BuildContext context) {
     // var text = _isHead() || _isNextHead() ? 'XX' : '';
 
-    final text = '';
-    final background =
-        _color == Colors.white || _snakeSide == SnakeSide.nextHead
-            ? !_lose
-                ?
-                // snakeSide == SnakeSide.nextHead ? _snakeBorderColor :
-                Colors.white
-                : Colors.red[200]
-            : _color;
+    final background = _color == Colors.white || _snakeSide == SnakeSide.head
+        ? !_lose
+            ?
+            // snakeSide == SnakeSide.nextHead ? _snakeBorderColor :
+            Colors.white
+            : Colors.red[200]
+        : _color;
 
     final borders = _getBorders(background);
     var container = Positioned(
@@ -270,10 +256,10 @@ class _SnakeNodeState extends State<SnakeNode> {
       // right: _isHead()
       //     ? -(_animationValue * widget.width)
       //     : _isNextHead() ? widget.width - (_animationValue * widget.width) : 0,
-      left: _getDistance(_Side.left),
-      top: _getDistance(_Side.top),
-      right: _getDistance(_Side.right),
-      bottom: _getDistance(_Side.bottom),
+      left: _init ? 0.0 : _getDistance(_Side.left),
+      top: _init ? 0.0 : _getDistance(_Side.top),
+      right: _init ? 0.0 : _getDistance(_Side.right),
+      bottom: _init ? 0.0 : _getDistance(_Side.bottom),
       child: Container(
         width: widget.width,
         height: widget.height,
@@ -281,17 +267,19 @@ class _SnakeNodeState extends State<SnakeNode> {
           color: background,
           border: borders,
         ),
-        child: FittedBox(
-          fit: BoxFit.fitWidth,
-          child: Text(
-            text,
-            style: TextStyle(
-              color: !_lose ? Colors.black : Colors.red[600],
-            ),
-          ),
-        ),
+        // child: FittedBox(
+        //   fit: BoxFit.fitWidth,
+        //   child: Text(
+        //     text,
+        //     style: TextStyle(
+        //       color: !_lose ? Colors.black : Colors.red[600],
+        //     ),
+        //   ),
+        // ),
       ),
     );
+
+    _init = false;
 
     return Container(
       width: widget.width,
@@ -314,5 +302,5 @@ enum SnakeSide {
   none,
   tail,
   head,
-  nextHead,
+  preHead,
 }

@@ -37,7 +37,6 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
   List<List<Color>> _whiteNodes;
   List<Cell> _snakePositions;
   Direction _direction;
-  // Timer _movingTimer;
   Timer _generateTimer;
   Cell _generate;
   int _generationCounter = 0;
@@ -51,8 +50,6 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
 
   double _snakeNodeWidth;
   double _snakeNodeHeight;
-  // int _nodeDivisions;
-  // static const int NODE_DIVISOR = 5;
 
   static const double MAX_WIDTH = 550;
   static const double MAX_HEIGHT = 550;
@@ -98,18 +95,11 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
       _snakeNodeWidth = MAX_WIDTH / widget.columns;
       _snakeNodeHeight = MAX_HEIGHT / widget.rows;
     }
-    // _nodeDivisions = (_snakeNodeWidth / NODE_DIVISOR).floor();
   }
 
   void _initTimers() {
     if (!_lose) {
       if (_animationController == null) {
-        // _movingTimer = Timer.periodic(
-        //   _getSnakeSpeed(),
-        //   (timer) {
-        //     _moveSnake();
-        //   },
-        // );
         _animationController = AnimationController(
           vsync: this,
           duration: Duration(milliseconds: _getSnakeSpeed()),
@@ -131,7 +121,7 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
   int _getSnakeSpeed() {
     switch (widget.speed) {
       case SnakeSpeed.slow:
-        return 150;
+        return 200;
       case SnakeSpeed.medium:
         return 100;
       case SnakeSpeed.fast:
@@ -141,9 +131,10 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
   }
 
   int _animationTurn = 0;
+  bool _removeTail = false;
 
   void _animateSnake(double animationValue) {
-    if (_nextKeys.isNotEmpty) {
+    if (_nextKeys.isNotEmpty && _animationController.isCompleted) {
       var next = _nextKeys.first;
       _nextKeys.removeAt(0);
       _updateDirection(next);
@@ -190,14 +181,15 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
               widget.maxLength,
               true,
               0.0,
+              _animationController.isCompleted,
+              true,
               Direction.none,
             );
             _clearTimers();
             return;
           }
 
-          _snakePositions.removeAt(0);
-          _whiteNodes[tail.row][tail.column] = Colors.black;
+          _removeTail = true;
         } else {
           _generationCounter = 0;
           _generate = null;
@@ -206,7 +198,13 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
       }
       _whiteNodes[newHead.row][newHead.column] = Colors.white;
     }
-    _animationTurn++;
+
+    if (_animationController.isCompleted && _removeTail) {
+      _removeTail = false;
+      _snakePositions.removeAt(0);
+      _whiteNodes[tail.row][tail.column] = Colors.black;
+    }
+
     _snakeNodeController.trigger(
       _whiteNodes,
       _snakePositions,
@@ -214,9 +212,12 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
       widget.maxLength,
       false,
       animationValue,
+      _animationController.isCompleted,
+      !_removeTail,
       _direction,
     );
 
+    _animationTurn++;
     if (_animationController.isCompleted) {
       _animationTurn = 0;
       try {
@@ -300,6 +301,9 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
                 height: _snakeNodeHeight,
                 grid: _whiteNodes,
                 snake: _snakePositions,
+                direction: _whiteNodes[row][column] == Colors.white
+                    ? Direction.right
+                    : Direction.none,
               ),
             ],
           ),
@@ -475,6 +479,9 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
               color: Colors.black,
               child: Container(
                 margin: EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[700], width: 0),
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -500,7 +507,9 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
         return;
       } else if (_animationController != null) {
         if (_direction == Direction.none) _animationController.forward();
-        if (_nextKeys.isEmpty || _nextKeys.last != event) _nextKeys.add(event);
+        if (_nextKeys.isEmpty || _nextKeys.last != event) {
+          _nextKeys.add(event);
+        }
       }
     }
   }

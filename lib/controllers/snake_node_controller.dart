@@ -13,14 +13,17 @@ class SnakeNodeController {
     );
   }
 
-  List<List<Function(List<List<Color>>, List<Cell>, bool, double, Direction)>>
-      _listeners;
+  List<
+      List<
+          Function(List<List<Color>>, List<Cell>, bool, double, bool, bool,
+              Direction)>> _listeners;
   Function(int, int) _boardListener;
 
   void addListener(
       int row,
       int column,
-      Function(List<List<Color>>, List<Cell>, bool, double, Direction)
+      Function(List<List<Color>>, List<Cell>, bool, double, bool, bool,
+              Direction)
           listener) {
     _listeners[row][column] = listener;
   }
@@ -29,14 +32,30 @@ class SnakeNodeController {
     _boardListener = listener;
   }
 
-  void trigger(List<List<Color>> colors, List<Cell> snake, int length,
-      int maxLength, bool lose, double animationValue, Direction direction) {
+  void trigger(
+      List<List<Color>> colors,
+      List<Cell> snake,
+      int length,
+      int maxLength,
+      bool lose,
+      double animationValue,
+      bool animationCompleted,
+      bool keepTail,
+      Direction direction) {
     for (int i = 0; i < colors.length; i++) {
       var colColors = colors[i];
       for (int n = 0; n < colColors.length; n++) {
         var callback = _listeners[i][n];
         if (callback != null) {
-          callback(colors, snake, lose, animationValue, direction);
+          callback(
+            colors,
+            snake,
+            lose,
+            animationValue,
+            animationCompleted,
+            keepTail,
+            direction,
+          );
         }
       }
     }
