@@ -32,7 +32,8 @@ class SnakeGrid extends StatefulWidget {
   _SnakeGridState createState() => _SnakeGridState();
 }
 
-class _SnakeGridState extends State<SnakeGrid> {
+class _SnakeGridState extends State<SnakeGrid>
+    with SingleTickerProviderStateMixin {
   FocusNode _focusNode;
   List<List<Color>> _whiteNodes;
   List<Cell> _snakePositions;
@@ -52,6 +53,8 @@ class _SnakeGridState extends State<SnakeGrid> {
 
   static const double MAX_WIDTH = 550;
   static const double MAX_HEIGHT = 550;
+
+  AnimationController _animationController;
 
   @override
   void initState() {
@@ -80,6 +83,10 @@ class _SnakeGridState extends State<SnakeGrid> {
     }
     _nextKeys = List<RawKeyEvent>();
     _processDimensions();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: _getSnakeSpeed()),
+    );
     _initTimers();
   }
 
@@ -115,6 +122,7 @@ class _SnakeGridState extends State<SnakeGrid> {
         );
       }
     }
+    _animationController.repeat();
   }
 
   int _getSnakeSpeed() {
@@ -226,12 +234,14 @@ class _SnakeGridState extends State<SnakeGrid> {
   void dispose() {
     _clearTimers();
     _focusNode.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
   void _clearTimers() {
     if (_movingTimer != null) _movingTimer.cancel();
     if (_generateTimer != null) _generateTimer.cancel();
+    _animationController.stop();
     _movingTimer = null;
     _generateTimer = null;
   }
@@ -259,6 +269,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                 height: _snakeNodeHeight,
                 grid: _whiteNodes,
                 snake: _snakePositions,
+                animationController: _animationController,
               ),
             ],
           ),
