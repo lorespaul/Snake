@@ -103,9 +103,11 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
         _animationController = AnimationController(
           vsync: this,
           duration: Duration(milliseconds: _getSnakeSpeed()),
-        )
-          ..addListener(() => _animateSnake(_animationController.value))
-          ..addStatusListener((AnimationStatus status) => _moveSnake(status));
+        )..addListener(() => _animateSnake(_animationController.value));
+      } else {
+        if (_animationController.isCompleted) _animationController.reset();
+        _animationController.forward();
+        _animationStopped = false;
       }
       if (_generateTimer == null) {
         _generateTimer = Timer.periodic(
@@ -121,17 +123,17 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
   int _getSnakeSpeed() {
     switch (widget.speed) {
       case SnakeSpeed.slow:
-        return 200;
-      case SnakeSpeed.medium:
-        return 100;
+        return 150;
       case SnakeSpeed.fast:
         return 80;
+      default:
+        return 3000;
     }
-    return 100;
   }
 
   int _animationTurn = 0;
   bool _removeTail = false;
+  bool _animationStopped = false;
 
   void _animateSnake(double animationValue) {
     if (_nextKeys.isNotEmpty && _animationController.isCompleted) {
@@ -166,7 +168,6 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
         return;
     }
 
-    // if (_animationController.isCompleted) {
     if (_animationTurn == 0) {
       if (newHead != null) {
         if (_generate == null ||
@@ -185,8 +186,9 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
               true,
               Direction.none,
             );
+            _stopAnimation();
             _clearTimers();
-            return;
+            // return;
           }
 
           _removeTail = true;
@@ -210,9 +212,9 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
       _snakePositions,
       _snakePositions.length,
       widget.maxLength,
-      false,
+      _lose,
       animationValue,
-      _animationController.isCompleted,
+      _animationController.isCompleted || _animationStopped,
       !_removeTail,
       _direction,
     );
@@ -222,18 +224,11 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
       _animationTurn = 0;
       try {
         _animationController.reset();
-        _animationController.forward();
+        if (!_animationStopped) _animationController.forward();
       } catch (e) {
-        // print(e);
+        print(e);
       }
     }
-  }
-
-  void _moveSnake(AnimationStatus animationStatus) {
-    // if (animationStatus == AnimationStatus.completed) {
-    //   _animationController.reset();
-    //   _animationController.forward();
-    // }
   }
 
   void _restart() {
@@ -271,11 +266,15 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
   void _clearTimers() {
     if (_animationController != null) {
       _animationController.stop();
-      _animationController.dispose();
+      // _animationController.dispose();
     }
     if (_generateTimer != null) _generateTimer.cancel();
-    _animationController = null;
+    // _animationController = null;
     _generateTimer = null;
+  }
+
+  void _stopAnimation() {
+    _animationStopped = true;
   }
 
   @override
@@ -453,7 +452,7 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
                         ),
                         RaisedButton(
                           child: Text('Stop'),
-                          onPressed: _clearTimers,
+                          onPressed: _stopAnimation,
                         ),
                         RaisedButton(
                           child: Text('Restart'),
@@ -463,6 +462,7 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
                           key: Key('SnakeBoard${widget.key.toString()}'),
                           length: _snakePositions.length,
                           maxLength: widget.maxLength,
+                          offset: _snakePositions.length + 1,
                           controller: _snakeNodeController,
                         ),
                       ],
@@ -498,14 +498,15 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
   void _keyListener(RawKeyEvent event) {
     if (event.runtimeType.toString() == 'RawKeyDownEvent') {
       if (event.logicalKey == LogicalKeyboardKey.space) {
-        if (_lose) {
+        if (_lose)
           _restart();
-        } else if (_animationController == null)
+        else if (!_animationController.isAnimating ||
+            _animationController.isCompleted)
           _initTimers();
         else
-          _clearTimers();
+          _stopAnimation();
         return;
-      } else if (_animationController != null) {
+      } else if (!_animationStopped) {
         if (_direction == Direction.none) _animationController.forward();
         if (_nextKeys.isEmpty || _nextKeys.last != event) {
           _nextKeys.add(event);

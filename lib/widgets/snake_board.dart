@@ -7,10 +7,12 @@ class SnakeBoard extends StatefulWidget {
     Key key,
     this.length,
     this.maxLength,
+    this.offset = 0,
     this.controller,
   }) : super(key: key);
   final int length;
   final int maxLength;
+  final int offset;
   final SnakeNodeController controller;
 
   @override
@@ -18,14 +20,12 @@ class SnakeBoard extends StatefulWidget {
 }
 
 class _SnakeBoardState extends State<SnakeBoard> {
-  int _baseLength;
   int _length;
   int _maxLength;
 
   @override
   void initState() {
     super.initState();
-    _baseLength = widget.length;
     _length = widget.length;
     if (_length > widget.maxLength)
       _maxLength = _length;
@@ -48,6 +48,10 @@ class _SnakeBoardState extends State<SnakeBoard> {
 
   @override
   Widget build(BuildContext context) {
+    var length = _length - widget.offset;
+    if (length < 0) length = 0;
+    var maxLength = _maxLength - widget.offset;
+    if (maxLength < 0) maxLength = 0;
     return Column(
       children: [
         Container(
@@ -67,7 +71,7 @@ class _SnakeBoardState extends State<SnakeBoard> {
               Container(
                 width: 25,
                 margin: EdgeInsets.only(right: 5),
-                child: Text('${_length - _baseLength}'),
+                child: Text('$length'),
               ),
               Container(
                 margin: EdgeInsets.only(right: 5),
@@ -79,7 +83,7 @@ class _SnakeBoardState extends State<SnakeBoard> {
               ),
               Container(
                 width: 25,
-                child: Text('${_maxLength - _baseLength}'),
+                child: Text('$maxLength'),
               ),
             ],
           ),

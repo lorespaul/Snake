@@ -124,6 +124,9 @@ class _SnakeNodeState extends State<SnakeNode> {
   BorderSide _getBorderSide(
       _Side side, Cell previous, Cell next, Color background) {
     var white = false;
+    if (_snakeSide == SnakeSide.preHead && !_init) {
+      next = null;
+    }
     switch (side) {
       case _Side.top:
         white = (previous != null &&
