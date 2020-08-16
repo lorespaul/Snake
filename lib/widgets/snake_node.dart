@@ -61,9 +61,21 @@ class _SnakeNodeState extends State<SnakeNode> {
     _animationValue = 0.0;
     _updateSnakeIndex();
     _updateSnakeSide();
-    _direction = _isHead() ? widget.direction : Direction.none;
+    _direction =
+        _snakeSide != SnakeSide.none ? widget.direction : Direction.none;
     var color = _grid[widget.row][widget.column];
     _color = color;
+
+    if (_snakeSide == SnakeSide.head) {
+      widget.controller.addInitListener(widget.row, widget.column, (
+        Direction direction,
+      ) {
+        _updateSnakeIndex();
+        _updateSnakeSide();
+        _direction = direction;
+      });
+    }
+
     widget.controller.addListener(
       widget.row,
       widget.column,
@@ -255,10 +267,6 @@ class _SnakeNodeState extends State<SnakeNode> {
 
     final borders = _getBorders(background);
     var container = Positioned(
-      // left: _isTail() ? (_animationValue * widget.width) : 0,
-      // right: _isHead()
-      //     ? -(_animationValue * widget.width)
-      //     : _isNextHead() ? widget.width - (_animationValue * widget.width) : 0,
       left: _init ? 0.0 : _getDistance(_Side.left),
       top: _init ? 0.0 : _getDistance(_Side.top),
       right: _init ? 0.0 : _getDistance(_Side.right),

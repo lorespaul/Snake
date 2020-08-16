@@ -11,12 +11,20 @@ class SnakeNodeController {
         (n) => null,
       ),
     );
+    _initListeners = List.generate(
+      rows,
+      (i) => List.generate(
+        columns,
+        (n) => null,
+      ),
+    );
   }
 
   List<
       List<
           Function(List<List<Color>>, List<Cell>, bool, double, bool, bool,
               Direction)>> _listeners;
+  List<List<Function(Direction)>> _initListeners;
   Function(int, int) _boardListener;
 
   void addListener(
@@ -26,6 +34,10 @@ class SnakeNodeController {
               Direction)
           listener) {
     _listeners[row][column] = listener;
+  }
+
+  void addInitListener(int row, int column, Function(Direction) listener) {
+    _initListeners[row][column] = listener;
   }
 
   void addBoardListener(Function(int, int) listener) {
@@ -60,5 +72,16 @@ class SnakeNodeController {
       }
     }
     if (_boardListener != null) _boardListener(length, maxLength);
+  }
+
+  void triggerInit(Direction direction) {
+    for (int i = 0; i < _initListeners.length; i++) {
+      var colInitListeners = _initListeners[i];
+      for (var initListener in colInitListeners) {
+        if (initListener != null) {
+          initListener(direction);
+        }
+      }
+    }
   }
 }

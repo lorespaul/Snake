@@ -136,7 +136,8 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
   bool _animationStopped = false;
 
   void _animateSnake(double animationValue) {
-    if (_nextKeys.isNotEmpty && _animationController.isCompleted) {
+    if (_nextKeys.isNotEmpty &&
+        (_animationController.isCompleted || _direction == Direction.none)) {
       var next = _nextKeys.first;
       _nextKeys.removeAt(0);
       _updateDirection(next);
@@ -197,8 +198,8 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
           _generate = null;
         }
         _snakePositions.add(newHead);
+        _whiteNodes[newHead.row][newHead.column] = Colors.white;
       }
-      _whiteNodes[newHead.row][newHead.column] = Colors.white;
     }
 
     if (_animationController.isCompleted && _removeTail) {
@@ -507,7 +508,13 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
           _stopAnimation();
         return;
       } else if (!_animationStopped) {
-        if (_direction == Direction.none) _animationController.forward();
+        if (_direction == Direction.none &&
+            event.logicalKey != LogicalKeyboardKey.arrowLeft &&
+            event.logicalKey.keyLabel != 'j') {
+          var direction = _getDirection(event);
+          _snakeNodeController.triggerInit(direction);
+          _animationController.forward();
+        }
         if (_nextKeys.isEmpty || _nextKeys.last != event) {
           _nextKeys.add(event);
         }
@@ -515,36 +522,66 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
     }
   }
 
-  void _updateDirection(RawKeyEvent event) {
+  Direction _getDirection(RawKeyEvent event) {
     switch (event.logicalKey.keyLabel) {
       case 'l':
-        if (_direction != Direction.left) _direction = Direction.right;
-        return;
+        if (_direction != Direction.left) return Direction.right;
+        break;
       case 'j':
         if (_direction != Direction.right && _direction != Direction.none)
-          _direction = Direction.left;
-        return;
+          return Direction.left;
+        break;
       case 'i':
-        if (_direction != Direction.down) _direction = Direction.up;
-        return;
+        if (_direction != Direction.down) return Direction.up;
+        break;
       case 'k':
-        if (_direction != Direction.up) _direction = Direction.down;
-        return;
+        if (_direction != Direction.up) return Direction.down;
+        break;
     }
     if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-      if (_direction != Direction.left) _direction = Direction.right;
-      return;
+      if (_direction != Direction.left) return Direction.right;
     } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
       if (_direction != Direction.right && _direction != Direction.none)
-        _direction = Direction.left;
-      return;
+        return Direction.left;
     } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      if (_direction != Direction.down) _direction = Direction.up;
-      return;
+      if (_direction != Direction.down) return Direction.up;
     } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-      if (_direction != Direction.up) _direction = Direction.down;
-      return;
+      if (_direction != Direction.up) return Direction.down;
     }
+    return Direction.none;
+  }
+
+  void _updateDirection(RawKeyEvent event) {
+    _direction = _getDirection(event);
+    // switch (event.logicalKey.keyLabel) {
+    //   case 'l':
+    //     if (_direction != Direction.left) _direction = Direction.right;
+    //     return;
+    //   case 'j':
+    //     if (_direction != Direction.right && _direction != Direction.none)
+    //       _direction = Direction.left;
+    //     return;
+    //   case 'i':
+    //     if (_direction != Direction.down) _direction = Direction.up;
+    //     return;
+    //   case 'k':
+    //     if (_direction != Direction.up) _direction = Direction.down;
+    //     return;
+    // }
+    // if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+    //   if (_direction != Direction.left) _direction = Direction.right;
+    //   return;
+    // } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+    //   if (_direction != Direction.right && _direction != Direction.none)
+    //     _direction = Direction.left;
+    //   return;
+    // } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+    //   if (_direction != Direction.down) _direction = Direction.up;
+    //   return;
+    // } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+    //   if (_direction != Direction.up) _direction = Direction.down;
+    //   return;
+    // }
   }
 }
 
