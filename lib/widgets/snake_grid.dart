@@ -442,7 +442,7 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
                           child: Text('Settings'),
                           onPressed: () {
                             if (widget.onOpenSettings != null) {
-                              _clearTimers();
+                              _stopAnimation();
                               widget.onOpenSettings();
                             }
                           },
@@ -552,7 +552,10 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
   }
 
   void _updateDirection(RawKeyEvent event) {
-    _direction = _getDirection(event);
+    final direction = _getDirection(event);
+    if (direction != Direction.none) {
+      _direction = direction;
+    }
     // switch (event.logicalKey.keyLabel) {
     //   case 'l':
     //     if (_direction != Direction.left) _direction = Direction.right;
