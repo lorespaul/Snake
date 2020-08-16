@@ -127,7 +127,7 @@ class _SnakeGridState extends State<SnakeGrid> with TickerProviderStateMixin {
       case SnakeSpeed.fast:
         return 80;
       default:
-        return 3000;
+        return 100;
     }
   }
 
