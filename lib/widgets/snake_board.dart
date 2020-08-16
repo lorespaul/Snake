@@ -1,4 +1,4 @@
-import 'package:Snake/controllers/snake_node_controller.dart';
+import 'package:Snake/controllers/abstract_snake_controller.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +13,7 @@ class SnakeBoard extends StatefulWidget {
   final int length;
   final int maxLength;
   final int offset;
-  final SnakeNodeController controller;
+  final AbstractSnakeController controller;
 
   @override
   _SnakeBoardState createState() => _SnakeBoardState();

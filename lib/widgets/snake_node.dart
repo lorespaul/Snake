@@ -1,5 +1,6 @@
 import 'package:Snake/controllers/snake_node_controller.dart';
-import 'package:Snake/widgets/snake_grid.dart';
+import 'package:Snake/models/cell.dart';
+import 'package:Snake/models/enums/side.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -13,7 +14,6 @@ class SnakeNode extends StatefulWidget {
     @required this.height,
     @required this.grid,
     @required this.snake,
-    this.direction = Direction.none,
   }) : super(key: key);
 
   final SnakeNodeController controller;
@@ -23,7 +23,6 @@ class SnakeNode extends StatefulWidget {
   final double height;
   final List<List<Color>> grid;
   final List<Cell> snake;
-  final Direction direction;
 
   @override
   _SnakeNodeState createState() =>
@@ -43,12 +42,6 @@ class _SnakeNodeState extends State<SnakeNode> {
   final int _maxColumn;
 
   bool _lose = false;
-  double _animationValue;
-  SnakeSide _snakeSide;
-  Direction _direction;
-
-  bool _init = true;
-  bool _keepTail = false;
 
   static const double SNAKE_BORDER_WIDTH = 2.5;
   static final Color _snakeBorderColor = Colors.green[700];
@@ -58,49 +51,18 @@ class _SnakeNodeState extends State<SnakeNode> {
     super.initState();
     _grid = widget.grid;
     _snake = widget.snake;
-    _animationValue = 0.0;
     _updateSnakeIndex();
-    _updateSnakeSide();
-    _direction =
-        _snakeSide != SnakeSide.none ? widget.direction : Direction.none;
     var color = _grid[widget.row][widget.column];
     _color = color;
-
-    if (_snakeSide == SnakeSide.head) {
-      widget.controller.addInitListener(widget.row, widget.column, (
-        Direction direction,
-      ) {
-        _updateSnakeIndex();
-        _updateSnakeSide();
-        _direction = direction;
-      });
-    }
-
     widget.controller.addListener(
       widget.row,
       widget.column,
-      (
-        List<List<Color>> grid,
-        List<Cell> snake,
-        bool lose,
-        double animationValue,
-        bool animationCompleted,
-        bool keepTail,
-        Direction direction,
-      ) {
+      (List<List<Color>> grid, List<Cell> snake, bool lose) {
         _snake = snake;
         _lose = lose;
-        _animationValue = animationValue;
-        _keepTail = keepTail;
-        if (_color == Colors.black) _direction = Direction.none;
         var color = grid[widget.row][widget.column];
         if (_color != color || color == Colors.white) {
           _updateSnakeIndex();
-          _updateSnakeSide();
-          if (_snakeSide == SnakeSide.head &&
-              (_direction == Direction.none || animationCompleted)) {
-            _direction = direction;
-          }
           setState(
             () => _color = color,
           );
@@ -113,34 +75,11 @@ class _SnakeNodeState extends State<SnakeNode> {
     _snakeIndex = _snake.indexOf(_cell);
   }
 
-  void _updateSnakeSide() {
-    _snakeSide = _isTail()
-        ? SnakeSide.tail
-        : _isHead()
-            ? SnakeSide.head
-            : _isPreHead() ? SnakeSide.preHead : SnakeSide.none;
-  }
-
-  bool _isHead() {
-    return _snakeIndex == _snake.length - 1;
-  }
-
-  bool _isPreHead() {
-    return _snakeIndex == _snake.length - 2;
-  }
-
-  bool _isTail() {
-    return _snakeIndex == 0;
-  }
-
   BorderSide _getBorderSide(
-      _Side side, Cell previous, Cell next, Color background) {
+      Side side, Cell previous, Cell next, Color background) {
     var white = false;
-    if (_snakeSide == SnakeSide.preHead && !_init) {
-      next = null;
-    }
     switch (side) {
-      case _Side.top:
+      case Side.top:
         white = (previous != null &&
                 (previous.row == widget.row - 1 ||
                     (previous.row == _maxRow && widget.row == 0)) &&
@@ -150,7 +89,7 @@ class _SnakeNodeState extends State<SnakeNode> {
                     (next.row == _maxRow && widget.row == 0)) &&
                 next.column == widget.column);
         break;
-      case _Side.bottom:
+      case Side.bottom:
         white = (previous != null &&
                 (previous.row == widget.row + 1 ||
                     (previous.row == 0 && widget.row == _maxRow)) &&
@@ -160,7 +99,7 @@ class _SnakeNodeState extends State<SnakeNode> {
                     (next.row == 0 && widget.row == _maxRow)) &&
                 next.column == widget.column);
         break;
-      case _Side.left:
+      case Side.left:
         white = (previous != null &&
                 (previous.column == widget.column - 1 ||
                     (previous.column == _maxColumn && widget.column == 0)) &&
@@ -170,7 +109,7 @@ class _SnakeNodeState extends State<SnakeNode> {
                     (next.column == _maxColumn && widget.column == 0)) &&
                 next.row == widget.row);
         break;
-      case _Side.right:
+      case Side.right:
         white = (previous != null &&
                 (previous.column == widget.column + 1 ||
                     (previous.column == 0 && widget.column == _maxColumn)) &&
@@ -190,16 +129,16 @@ class _SnakeNodeState extends State<SnakeNode> {
     );
   }
 
-  Border _getBorders(Color background) {
+  BoxBorder _getBoxBorders(Color background) {
     if (_snakeIndex != -1) {
-      Cell previous, next;
-      previous = _snakeIndex - 1 >= 0 ? _snake[_snakeIndex - 1] : null;
-      next = _snakeIndex + 1 < _snake.length ? _snake[_snakeIndex + 1] : null;
+      var previous = _snakeIndex - 1 >= 0 ? _snake[_snakeIndex - 1] : null;
+      var next =
+          _snakeIndex + 1 < _snake.length ? _snake[_snakeIndex + 1] : null;
       return Border(
-        top: _getBorderSide(_Side.top, previous, next, background),
-        bottom: _getBorderSide(_Side.bottom, previous, next, background),
-        left: _getBorderSide(_Side.left, previous, next, background),
-        right: _getBorderSide(_Side.right, previous, next, background),
+        top: _getBorderSide(Side.top, previous, next, background),
+        bottom: _getBorderSide(Side.bottom, previous, next, background),
+        left: _getBorderSide(Side.left, previous, next, background),
+        right: _getBorderSide(Side.right, previous, next, background),
       );
     } else if (_color == Colors.red[300]) {
       return Border.all(
@@ -214,104 +153,31 @@ class _SnakeNodeState extends State<SnakeNode> {
     }
   }
 
-  double _getDistance(_Side side) {
-    double result = 0.0;
-    switch (_snakeSide) {
-      case SnakeSide.tail:
-        if (_keepTail) {
-          break;
-        }
-        if ((side == _Side.left && _direction == Direction.right) ||
-            (side == _Side.right && _direction == Direction.left)) {
-          result = _animationValue * widget.width;
-        } else if ((side == _Side.top && _direction == Direction.down) ||
-            (side == _Side.bottom && _direction == Direction.up)) {
-          result = _animationValue * widget.height;
-        }
-        break;
-      case SnakeSide.preHead:
-        if ((side == _Side.left && _direction == Direction.left) ||
-            (side == _Side.right && _direction == Direction.right)) {
-          result = -(_animationValue * widget.width);
-        } else if ((side == _Side.top && _direction == Direction.up) ||
-            (side == _Side.bottom && _direction == Direction.down)) {
-          result = -(_animationValue * widget.height);
-        }
-        break;
-      case SnakeSide.head:
-        if ((side == _Side.left && _direction == Direction.left) ||
-            (side == _Side.right && _direction == Direction.right)) {
-          result = widget.width - (_animationValue * widget.width);
-        } else if ((side == _Side.top && _direction == Direction.up) ||
-            (side == _Side.bottom && _direction == Direction.down)) {
-          result = widget.height - (_animationValue * widget.height);
-        }
-        break;
-      default:
-        break;
-    }
-    return result;
+  bool _isHead() {
+    return _snakeIndex == _snake.length - 1;
   }
 
   @override
   Widget build(BuildContext context) {
-    // var text = _isHead() || _isNextHead() ? 'XX' : '';
-
-    final background = _color == Colors.white || _snakeSide == SnakeSide.head
-        ? !_lose
-            ?
-            // snakeSide == SnakeSide.nextHead ? _snakeBorderColor :
-            Colors.white
-            : Colors.red[200]
-        : _color;
-
-    final borders = _getBorders(background);
-    var container = Positioned(
-      left: _init ? 0.0 : _getDistance(_Side.left),
-      top: _init ? 0.0 : _getDistance(_Side.top),
-      right: _init ? 0.0 : _getDistance(_Side.right),
-      bottom: _init ? 0.0 : _getDistance(_Side.bottom),
-      child: Container(
-        width: widget.width,
-        height: widget.height,
-        decoration: BoxDecoration(
-          color: background,
-          border: borders,
-        ),
-        // child: FittedBox(
-        //   fit: BoxFit.fitWidth,
-        //   child: Text(
-        //     text,
-        //     style: TextStyle(
-        //       color: !_lose ? Colors.black : Colors.red[600],
-        //     ),
-        //   ),
-        // ),
-      ),
-    );
-
-    _init = false;
-
+    var text = _isHead() ? 'XX' : '';
+    var background =
+        _color == Colors.white ? !_lose ? _color : Colors.red[200] : _color;
     return Container(
       width: widget.width,
       height: widget.height,
-      child: Stack(
-        children: [container],
+      decoration: BoxDecoration(
+        color: background,
+        border: _getBoxBorders(background),
+      ),
+      child: FittedBox(
+        fit: BoxFit.fitWidth,
+        child: Text(
+          text,
+          style: TextStyle(
+            color: !_lose ? Colors.black : Colors.red[600],
+          ),
+        ),
       ),
     );
   }
-}
-
-enum _Side {
-  top,
-  bottom,
-  left,
-  right,
-}
-
-enum SnakeSide {
-  none,
-  tail,
-  head,
-  preHead,
 }
