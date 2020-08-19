@@ -24,7 +24,7 @@ class AnimatedSnakeNodeController extends AbstractSnakeController {
 
   List<
       List<
-          Function(List<List<Color>>, List<Cell>, bool, double, int, bool, bool,
+          Function(List<List<Color>>, List<Cell>, bool, int, bool, bool,
               Direction)>> _listeners;
   List<List<Function(Direction)>> _initListeners;
   Function(int, int) _boardListener;
@@ -32,8 +32,7 @@ class AnimatedSnakeNodeController extends AbstractSnakeController {
   void addListener(
       int row,
       int column,
-      Function(List<List<Color>>, List<Cell>, bool, double, int, bool, bool,
-              Direction)
+      Function(List<List<Color>>, List<Cell>, bool, int, bool, bool, Direction)
           listener) {
     _listeners[row][column] = listener;
   }
@@ -52,7 +51,6 @@ class AnimatedSnakeNodeController extends AbstractSnakeController {
       int length,
       int maxLength,
       bool lose,
-      double animationValue,
       int animationTurn,
       bool animationCompleted,
       bool keepTail,
@@ -66,7 +64,6 @@ class AnimatedSnakeNodeController extends AbstractSnakeController {
             colors,
             snake,
             lose,
-            animationValue,
             animationTurn,
             animationCompleted,
             keepTail,

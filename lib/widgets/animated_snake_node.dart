@@ -47,7 +47,6 @@ class _SnakeNodeState extends State<SnakeNode> {
   final int _maxColumn;
 
   bool _lose = false;
-  double _animationValue;
   _SnakeSide _snakeSide;
   Direction _direction;
 
@@ -62,7 +61,6 @@ class _SnakeNodeState extends State<SnakeNode> {
     super.initState();
     _grid = widget.grid;
     _snake = widget.snake;
-    _animationValue = 0.0;
     _updateSnakeIndex();
     _updateSnakeSide();
     _direction =
@@ -87,7 +85,6 @@ class _SnakeNodeState extends State<SnakeNode> {
         List<List<Color>> grid,
         List<Cell> snake,
         bool lose,
-        double animationValue,
         int animationTurn,
         bool animationCompleted,
         bool keepTail,
@@ -95,7 +92,6 @@ class _SnakeNodeState extends State<SnakeNode> {
       ) {
         _snake = snake;
         _lose = lose;
-        _animationValue = animationValue;
         _keepTail = keepTail;
         if (_color == Colors.black) _direction = Direction.none;
         var color = grid[widget.row][widget.column];
@@ -106,8 +102,7 @@ class _SnakeNodeState extends State<SnakeNode> {
               (_direction == Direction.none || animationCompleted)) {
             _direction = direction;
           }
-          if ((animationTurn == 0 || animationCompleted) &&
-              (_lose || _color != color || _snakeSide != _SnakeSide.none)) {
+          if (_lose || _color != color || _snakeSide != _SnakeSide.none) {
             setState(
               () => _color = color,
             );
@@ -216,13 +211,13 @@ class _SnakeNodeState extends State<SnakeNode> {
       );
     } else {
       return Border.all(
-        color: _color == Colors.black ? Colors.grey[700] : _color,
+        color: _color == Colors.black ? Colors.grey[800] : _color,
         width: 0,
       );
     }
   }
 
-  double _getDistance(Side side) {
+  double _getDistance(Side side, double animationValue) {
     double result = 0.0;
     switch (_snakeSide) {
       case _SnakeSide.tail:
@@ -231,28 +226,28 @@ class _SnakeNodeState extends State<SnakeNode> {
         }
         if ((side == Side.left && _direction == Direction.right) ||
             (side == Side.right && _direction == Direction.left)) {
-          result = _animationValue * widget.width;
+          result = animationValue * widget.width;
         } else if ((side == Side.top && _direction == Direction.down) ||
             (side == Side.bottom && _direction == Direction.up)) {
-          result = _animationValue * widget.height;
+          result = animationValue * widget.height;
         }
         break;
       case _SnakeSide.preHead:
         if ((side == Side.left && _direction == Direction.left) ||
             (side == Side.right && _direction == Direction.right)) {
-          result = -(_animationValue * widget.width);
+          result = -(animationValue * widget.width);
         } else if ((side == Side.top && _direction == Direction.up) ||
             (side == Side.bottom && _direction == Direction.down)) {
-          result = -(_animationValue * widget.height);
+          result = -(animationValue * widget.height);
         }
         break;
       case _SnakeSide.head:
         if ((side == Side.left && _direction == Direction.left) ||
             (side == Side.right && _direction == Direction.right)) {
-          result = widget.width - (_animationValue * widget.width);
+          result = widget.width - (animationValue * widget.width);
         } else if ((side == Side.top && _direction == Direction.up) ||
             (side == Side.bottom && _direction == Direction.down)) {
-          result = widget.height - (_animationValue * widget.height);
+          result = widget.height - (animationValue * widget.height);
         }
         break;
       default:
@@ -277,12 +272,13 @@ class _SnakeNodeState extends State<SnakeNode> {
     var container = AnimatedBuilder(
       animation: widget.animationController,
       builder: (_, child) {
+        final value = widget.animationController.value;
         var content = Positioned(
           key: Key('Positioned${widget.key}'),
-          left: _init ? 0.0 : _getDistance(Side.left),
-          top: _init ? 0.0 : _getDistance(Side.top),
-          right: _init ? 0.0 : _getDistance(Side.right),
-          bottom: _init ? 0.0 : _getDistance(Side.bottom),
+          left: _init ? 0.0 : _getDistance(Side.left, value),
+          top: _init ? 0.0 : _getDistance(Side.top, value),
+          right: _init ? 0.0 : _getDistance(Side.right, value),
+          bottom: _init ? 0.0 : _getDistance(Side.bottom, value),
           child: Container(
             width: widget.width,
             height: widget.height,

@@ -188,7 +188,6 @@ class _AnimatedSnakeGridState extends State<AnimatedSnakeGrid>
               _snakePositions.length,
               widget.maxLength,
               true,
-              0.0,
               _animationTurn,
               _animationController.isCompleted,
               true,
@@ -215,18 +214,19 @@ class _AnimatedSnakeGridState extends State<AnimatedSnakeGrid>
       _whiteNodes[tail.row][tail.column] = Colors.black;
     }
 
-    _snakeNodeController.trigger(
-      _whiteNodes,
-      _snakePositions,
-      _snakePositions.length,
-      widget.maxLength,
-      _lose,
-      animationValue,
-      _animationTurn,
-      _animationController.isCompleted || _animationStopped,
-      !_removeTail,
-      _direction,
-    );
+    if (_animationTurn == 0 || _animationController.isCompleted) {
+      _snakeNodeController.trigger(
+        _whiteNodes,
+        _snakePositions,
+        _snakePositions.length,
+        widget.maxLength,
+        _lose,
+        _animationTurn,
+        _animationController.isCompleted || _animationStopped,
+        !_removeTail,
+        _direction,
+      );
+    }
 
     _animationTurn++;
     if (_animationController.isCompleted) {
@@ -490,7 +490,7 @@ class _AnimatedSnakeGridState extends State<AnimatedSnakeGrid>
               child: Container(
                 margin: EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[700], width: 0),
+                  border: Border.all(color: Colors.grey[800], width: 0),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -508,13 +508,15 @@ class _AnimatedSnakeGridState extends State<AnimatedSnakeGrid>
   void _keyListener(RawKeyEvent event) {
     if (event.runtimeType.toString() == 'RawKeyDownEvent') {
       if (event.logicalKey == LogicalKeyboardKey.space) {
-        if (_lose)
-          _restart();
-        else if (!_animationController.isAnimating ||
-            _animationController.isCompleted)
-          _initTimers();
-        else
-          _stopAnimation();
+        if (_direction != Direction.none) {
+          if (_lose)
+            _restart();
+          else if (!_animationController.isAnimating ||
+              _animationController.isCompleted)
+            _initTimers();
+          else
+            _stopAnimation();
+        }
         return;
       } else if (!_animationStopped) {
         if (_direction == Direction.none &&

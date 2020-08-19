@@ -147,7 +147,7 @@ class _SnakeNodeState extends State<SnakeNode> {
       );
     } else {
       return Border.all(
-        color: _color == Colors.black ? Colors.grey[700] : _color,
+        color: _color == Colors.black ? Colors.grey[800] : _color,
         width: 0,
       );
     }
