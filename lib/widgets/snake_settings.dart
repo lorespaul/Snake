@@ -1,8 +1,7 @@
+import 'package:Snake/models/enums/snake_speed.dart';
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:uuid/uuid.dart';
-
-import './snake_grid.dart';
 
 class SnakeSettings extends StatefulWidget {
   SnakeSettings({
@@ -10,9 +9,11 @@ class SnakeSettings extends StatefulWidget {
     @required this.defaultRows,
     @required this.defaultColumns,
     @required this.defaultSpeed,
+    @required this.defaultAnimated,
     @required this.rows,
     @required this.columns,
     @required this.speed,
+    @required this.animated,
     @required this.onSettingChange,
     @required this.onCancel,
     @required this.onApply,
@@ -21,10 +22,12 @@ class SnakeSettings extends StatefulWidget {
   final int defaultRows;
   final int defaultColumns;
   final SnakeSpeed defaultSpeed;
+  final bool defaultAnimated;
 
   final int rows;
   final int columns;
   final SnakeSpeed speed;
+  final bool animated;
   final Function(SnakeSettingType, Object) onSettingChange;
   final Function onCancel;
   final Function onApply;
@@ -37,6 +40,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
   int _rows;
   int _columns;
   SnakeSpeed _snakeSpeed;
+  bool _animated;
 
   bool _blockAxis;
 
@@ -52,6 +56,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
     _rows = widget.rows;
     _columns = widget.columns;
     _snakeSpeed = widget.speed;
+    _animated = widget.animated;
     _blockAxis = _rows == _columns;
     _initKeys();
     super.initState();
@@ -159,7 +164,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                               width: 90,
                               height: 60,
                               padding: EdgeInsets.only(right: 20),
-                              margin: EdgeInsets.only(right: 61),
+                              margin: EdgeInsets.only(right: 10),
                               alignment: Alignment.centerRight,
                               child: Text('Block axis'),
                             ),
@@ -177,11 +182,12 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                       ],
                     ),
                     Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Container(
-                              width: 70,
+                              width: 90,
                               height: CONTAINER_HEIGHT,
                               padding: EdgeInsets.only(right: 20),
                               alignment: Alignment.centerRight,
@@ -222,7 +228,30 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                         Row(
                           children: [
                             Container(
+                              width: 90,
                               height: 65,
+                              padding: EdgeInsets.only(right: 20),
+                              alignment: Alignment.centerRight,
+                              child: Text('Animated'),
+                            ),
+                            Container(
+                              height: 60,
+                              child: Switch(
+                                value: _animated,
+                                onChanged: (val) => setState(() {
+                                  _animated = val;
+                                }),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 85,
+                            ),
+                            Container(
+                              height: 60,
                               padding: EdgeInsets.all(17),
                               child: RaisedButton(
                                 child: Text('Reset defaults'),
@@ -231,6 +260,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                                     _rows = widget.defaultRows;
                                     _columns = widget.defaultColumns;
                                     _snakeSpeed = widget.defaultSpeed;
+                                    _animated = widget.defaultAnimated;
                                     _blockAxis = true;
                                     _initKeys();
                                   },
@@ -274,6 +304,10 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                             SnakeSettingType.speed,
                             _snakeSpeed,
                           );
+                          widget.onSettingChange(
+                            SnakeSettingType.animated,
+                            _animated,
+                          );
                           widget.onApply();
                         },
                       ),
@@ -293,4 +327,5 @@ enum SnakeSettingType {
   rows,
   columns,
   speed,
+  animated,
 }

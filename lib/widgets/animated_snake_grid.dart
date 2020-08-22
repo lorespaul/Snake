@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:Snake/controllers/snake_node_controller.dart';
+import 'package:Snake/controllers/animated_snake_node_controller.dart';
 import 'package:Snake/models/cell.dart';
 import 'package:Snake/models/enums/direction.dart';
 import 'package:Snake/models/enums/snake_speed.dart';
 import 'package:Snake/widgets/snake_board.dart';
-import 'package:Snake/widgets/snake_node.dart';
+import 'package:Snake/widgets/animated_snake_node.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -13,8 +13,8 @@ import 'dart:math';
 
 import 'package:flutter/services.dart';
 
-class SnakeGrid extends StatefulWidget {
-  SnakeGrid({
+class AnimatedSnakeGrid extends StatefulWidget {
+  AnimatedSnakeGrid({
     Key key,
     @required this.rows,
     @required this.columns,
@@ -34,23 +34,25 @@ class SnakeGrid extends StatefulWidget {
   final Function onOpenSettings;
 
   @override
-  _SnakeGridState createState() => _SnakeGridState();
+  _AnimatedSnakeGridState createState() => _AnimatedSnakeGridState();
 }
 
-class _SnakeGridState extends State<SnakeGrid> {
+class _AnimatedSnakeGridState extends State<AnimatedSnakeGrid>
+    with TickerProviderStateMixin {
   FocusNode _focusNode;
   List<List<Color>> _whiteNodes;
   List<Cell> _snakePositions;
   Direction _direction;
-  Timer _movingTimer;
   Timer _generateTimer;
   Cell _generate;
   int _generationCounter = 0;
   bool _lose;
-  SnakeNodeController _snakeNodeController;
+  AnimatedSnakeNodeController _snakeNodeController;
   List<int> _initialSnake;
   List<RawKeyEvent> _nextKeys;
   final Random _random = Random();
+
+  AnimationController _animationController;
 
   double _snakeNodeWidth;
   double _snakeNodeHeight;
@@ -66,7 +68,8 @@ class _SnakeGridState extends State<SnakeGrid> {
 
   void _init() {
     _focusNode = FocusNode();
-    _snakeNodeController = SnakeNodeController(widget.rows, widget.columns);
+    _snakeNodeController =
+        AnimatedSnakeNodeController(widget.rows, widget.columns);
     _lose = false;
     _initialSnake = List.generate(3, (index) => index + 2);
     _whiteNodes = List.generate(
@@ -103,13 +106,16 @@ class _SnakeGridState extends State<SnakeGrid> {
 
   void _initTimers() {
     if (!_lose) {
-      if (_movingTimer == null) {
-        _movingTimer = Timer.periodic(
-          Duration(milliseconds: _getSnakeSpeed()),
-          (timer) {
-            _moveSnake();
-          },
-        );
+      if (_animationController == null) {
+        _animationController = AnimationController(
+          vsync: this,
+          duration: Duration(milliseconds: _getSnakeSpeed()),
+          animationBehavior: AnimationBehavior.preserve,
+        )..addListener(() => _animateSnake(_animationController.value));
+      } else {
+        if (_animationController.isCompleted) _animationController.reset();
+        _animationController.forward();
+        _animationStopped = false;
       }
       if (_generateTimer == null) {
         _generateTimer = Timer.periodic(
@@ -126,16 +132,20 @@ class _SnakeGridState extends State<SnakeGrid> {
     switch (widget.speed) {
       case SnakeSpeed.slow:
         return 150;
-      case SnakeSpeed.medium:
-        return 100;
       case SnakeSpeed.fast:
         return 80;
+      default:
+        return 100;
     }
-    return 100;
   }
 
-  void _moveSnake() {
-    if (_nextKeys.isNotEmpty) {
+  int _animationTurn = 0;
+  bool _removeTail = false;
+  bool _animationStopped = false;
+
+  void _animateSnake(double animationValue) {
+    if (_nextKeys.isNotEmpty &&
+        (_animationController.isCompleted || _direction == Direction.none)) {
       var next = _nextKeys.first;
       _nextKeys.removeAt(0);
       _updateDirection(next);
@@ -166,39 +176,69 @@ class _SnakeGridState extends State<SnakeGrid> {
       case Direction.none:
         return;
     }
-    if (newHead != null) {
-      if (_generate == null ||
-          _generate.row != newHead.row ||
-          _generate.column != newHead.column) {
-        if (_whiteNodes[newHead.row][newHead.column] == Colors.white) {
-          _lose = true;
-          _snakeNodeController.trigger(
-            _whiteNodes,
-            _snakePositions,
-            _snakePositions.length,
-            widget.maxLength,
-            true,
-          );
-          _clearTimers();
-          return;
+
+    if (_animationTurn == 0) {
+      if (newHead != null) {
+        if (_generate == null ||
+            _generate.row != newHead.row ||
+            _generate.column != newHead.column) {
+          if (_whiteNodes[newHead.row][newHead.column] == Colors.white) {
+            _lose = true;
+            _snakeNodeController.trigger(
+              _whiteNodes,
+              _snakePositions,
+              _snakePositions.length,
+              widget.maxLength,
+              true,
+              _animationTurn,
+              _animationController.isCompleted,
+              true,
+              Direction.none,
+            );
+            _stopAnimation();
+            _clearTimers();
+            // return;
+          }
+
+          _removeTail = true;
+        } else {
+          _generationCounter = 0;
+          _generate = null;
         }
-
-        _snakePositions.removeAt(0);
-        _whiteNodes[tail.row][tail.column] = Colors.black;
-      } else {
-        _generationCounter = 0;
-        _generate = null;
+        _snakePositions.add(newHead);
+        _whiteNodes[newHead.row][newHead.column] = Colors.white;
       }
-      _snakePositions.add(newHead);
+    }
 
-      _whiteNodes[newHead.row][newHead.column] = Colors.white;
+    if (_animationController.isCompleted && _removeTail) {
+      _removeTail = false;
+      _snakePositions.removeAt(0);
+      _whiteNodes[tail.row][tail.column] = Colors.black;
+    }
+
+    if (_animationTurn == 0 || _animationController.isCompleted) {
       _snakeNodeController.trigger(
         _whiteNodes,
         _snakePositions,
         _snakePositions.length,
         widget.maxLength,
-        false,
+        _lose,
+        _animationTurn,
+        _animationController.isCompleted || _animationStopped,
+        !_removeTail,
+        _direction,
       );
+    }
+
+    _animationTurn++;
+    if (_animationController.isCompleted) {
+      _animationTurn = 0;
+      try {
+        _animationController.reset();
+        if (!_animationStopped) _animationController.forward();
+      } catch (e) {
+        print(e);
+      }
     }
   }
 
@@ -235,10 +275,17 @@ class _SnakeGridState extends State<SnakeGrid> {
   }
 
   void _clearTimers() {
-    if (_movingTimer != null) _movingTimer.cancel();
+    if (_animationController != null) {
+      _animationController.stop();
+      // _animationController.dispose();
+    }
     if (_generateTimer != null) _generateTimer.cancel();
-    _movingTimer = null;
+    // _animationController = null;
     _generateTimer = null;
+  }
+
+  void _stopAnimation() {
+    _animationStopped = true;
     if (widget.onStop != null) {
       widget.onStop(_snakePositions.length);
     }
@@ -267,6 +314,10 @@ class _SnakeGridState extends State<SnakeGrid> {
                 height: _snakeNodeHeight,
                 grid: _whiteNodes,
                 snake: _snakePositions,
+                direction: _whiteNodes[row][column] == Colors.white
+                    ? Direction.right
+                    : Direction.none,
+                animationController: _animationController,
               ),
             ],
           ),
@@ -405,7 +456,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                           child: Text('Settings'),
                           onPressed: () {
                             if (widget.onOpenSettings != null) {
-                              _clearTimers();
+                              _stopAnimation();
                               widget.onOpenSettings();
                             }
                           },
@@ -416,7 +467,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                         ),
                         RaisedButton(
                           child: Text('Stop'),
-                          onPressed: _clearTimers,
+                          onPressed: _stopAnimation,
                         ),
                         RaisedButton(
                           child: Text('Restart'),
@@ -426,7 +477,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                           key: Key('SnakeBoard${widget.key.toString()}'),
                           length: _snakePositions.length,
                           maxLength: widget.maxLength,
-                          offset: _snakePositions.length,
+                          offset: _snakePositions.length + 1,
                           controller: _snakeNodeController,
                         ),
                       ],
@@ -443,6 +494,9 @@ class _SnakeGridState extends State<SnakeGrid> {
               color: Colors.black,
               child: Container(
                 margin: EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[800], width: 0),
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -459,48 +513,93 @@ class _SnakeGridState extends State<SnakeGrid> {
   void _keyListener(RawKeyEvent event) {
     if (event.runtimeType.toString() == 'RawKeyDownEvent') {
       if (event.logicalKey == LogicalKeyboardKey.space) {
-        if (_lose) {
-          _restart();
-        } else if (_movingTimer == null)
-          _initTimers();
-        else
-          _clearTimers();
+        if (_direction != Direction.none) {
+          if (_lose)
+            _restart();
+          else if (!_animationController.isAnimating ||
+              _animationController.isCompleted)
+            _initTimers();
+          else
+            _stopAnimation();
+        }
         return;
-      } else if (_movingTimer != null) {
-        if (_nextKeys.isEmpty || _nextKeys.last != event) _nextKeys.add(event);
+      } else if (!_animationStopped) {
+        if (_direction == Direction.none &&
+            event.logicalKey != LogicalKeyboardKey.arrowLeft &&
+            event.logicalKey.keyLabel != 'j') {
+          var direction = _getDirection(event);
+          _snakeNodeController.triggerInit(direction);
+          _animationController.forward();
+        }
+        if (_nextKeys.isEmpty || _nextKeys.last != event) {
+          _nextKeys.add(event);
+        }
       }
     }
   }
 
-  void _updateDirection(RawKeyEvent event) {
+  Direction _getDirection(RawKeyEvent event) {
     switch (event.logicalKey.keyLabel) {
       case 'l':
-        if (_direction != Direction.left) _direction = Direction.right;
-        return;
+        if (_direction != Direction.left) return Direction.right;
+        break;
       case 'j':
         if (_direction != Direction.right && _direction != Direction.none)
-          _direction = Direction.left;
-        return;
+          return Direction.left;
+        break;
       case 'i':
-        if (_direction != Direction.down) _direction = Direction.up;
-        return;
+        if (_direction != Direction.down) return Direction.up;
+        break;
       case 'k':
-        if (_direction != Direction.up) _direction = Direction.down;
-        return;
+        if (_direction != Direction.up) return Direction.down;
+        break;
     }
     if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-      if (_direction != Direction.left) _direction = Direction.right;
-      return;
+      if (_direction != Direction.left) return Direction.right;
     } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
       if (_direction != Direction.right && _direction != Direction.none)
-        _direction = Direction.left;
-      return;
+        return Direction.left;
     } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      if (_direction != Direction.down) _direction = Direction.up;
-      return;
+      if (_direction != Direction.down) return Direction.up;
     } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-      if (_direction != Direction.up) _direction = Direction.down;
-      return;
+      if (_direction != Direction.up) return Direction.down;
     }
+    return Direction.none;
+  }
+
+  void _updateDirection(RawKeyEvent event) {
+    final direction = _getDirection(event);
+    if (direction != Direction.none) {
+      _direction = direction;
+    }
+    // switch (event.logicalKey.keyLabel) {
+    //   case 'l':
+    //     if (_direction != Direction.left) _direction = Direction.right;
+    //     return;
+    //   case 'j':
+    //     if (_direction != Direction.right && _direction != Direction.none)
+    //       _direction = Direction.left;
+    //     return;
+    //   case 'i':
+    //     if (_direction != Direction.down) _direction = Direction.up;
+    //     return;
+    //   case 'k':
+    //     if (_direction != Direction.up) _direction = Direction.down;
+    //     return;
+    // }
+    // if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+    //   if (_direction != Direction.left) _direction = Direction.right;
+    //   return;
+    // } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+    //   if (_direction != Direction.right && _direction != Direction.none)
+    //     _direction = Direction.left;
+    //   return;
+    // } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+    //   if (_direction != Direction.down) _direction = Direction.up;
+    //   return;
+    // } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+    //   if (_direction != Direction.up) _direction = Direction.down;
+    //   return;
+    // }
   }
 }

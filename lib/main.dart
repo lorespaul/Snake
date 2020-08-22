@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:Snake/widgets/animated_snake_grid.dart';
 import 'package:Snake/widgets/snake_grid.dart';
 import 'package:Snake/widgets/snake_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+
+import 'models/enums/snake_speed.dart';
 
 void main() {
   runApp(MyApp());
@@ -62,14 +65,14 @@ class _MyHomePageState extends State<MyHomePage> {
   static const int ROWS = 17;
   static const int COLUMNS = 17;
   static const SnakeSpeed SNAKE_SPEED = SnakeSpeed.medium;
+  static const bool ANIMATED = false;
 
   int _rows;
   int _columns;
   SnakeSpeed _snakeSpeed;
+  bool _animated;
   String _snakeKey = 'A';
   int _maxLength = 0;
-
-  // FocusNode _snakeGridFocusNode;
 
   @override
   void initState() {
@@ -82,6 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _rows = ROWS;
     _columns = COLUMNS;
     _snakeSpeed = SNAKE_SPEED;
+    _animated = ANIMATED;
   }
 
   @override
@@ -108,80 +112,109 @@ class _MyHomePageState extends State<MyHomePage> {
           decoration: BoxDecoration(color: Colors.grey[200]),
           // Center is a layout widget. It takes a single child and positions it
           // in the middle of the parent.
-          child: SnakeGrid(
-            key: Key(_snakeKey),
-            // focusNode: _snakeGridFocusNode,
-            rows: _rows,
-            columns: _columns,
-            speed: _snakeSpeed,
-            maxLength: _maxLength,
-            onRestart: (int length) => setState(() {
-              if (length > _maxLength) {
-                _maxLength = length;
-              }
-              _snakeKey = Uuid().v1();
-            }),
-            onOpenSettings: () {
-              showCupertinoModalPopup(
-                context: context,
-                builder: (context) {
-                  return Center(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                      ),
-                      child: SnakeSettings(
-                        defaultRows: ROWS,
-                        defaultColumns: COLUMNS,
-                        defaultSpeed: SNAKE_SPEED,
-                        rows: _rows,
-                        columns: _columns,
-                        speed: _snakeSpeed,
-                        onSettingChange: (
-                          SnakeSettingType type,
-                          Object value,
-                        ) {
-                          switch (type) {
-                            case SnakeSettingType.rows:
-                              _rows = value;
-                              break;
-                            case SnakeSettingType.columns:
-                              _columns = value;
-                              break;
-                            case SnakeSettingType.speed:
-                              _snakeSpeed = value;
-                              break;
-                          }
-                        },
-                        onCancel: () {
-                          Navigator.pop(
-                            context,
-                          );
-                        },
-                        onApply: () {
-                          Navigator.pop(
-                            context,
-                            'Apply',
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ).then((value) {
-                if (value == 'Apply') {
-                  Timer(
-                    const Duration(milliseconds: 200),
-                    () => setState(() {
-                      _snakeKey = Uuid().v1();
-                    }),
-                  );
-                }
-              });
-            },
-          ),
+          child: _animated
+              ? AnimatedSnakeGrid(
+                  key: Key(_snakeKey),
+                  rows: _rows,
+                  columns: _columns,
+                  speed: _snakeSpeed,
+                  maxLength: _maxLength,
+                  onStop: onStop,
+                  onRestart: restart,
+                  onOpenSettings: openSettingsModal,
+                )
+              : SnakeGrid(
+                  key: Key(_snakeKey),
+                  rows: _rows,
+                  columns: _columns,
+                  speed: _snakeSpeed,
+                  maxLength: _maxLength,
+                  onStop: onStop,
+                  onRestart: restart,
+                  onOpenSettings: openSettingsModal,
+                ),
         ),
       ),
     );
+  }
+
+  void onStop(int length) {
+    if (length > _maxLength) {
+      _maxLength = length;
+    }
+  }
+
+  void restart(int length) => setState(() {
+        if (length > _maxLength) {
+          _maxLength = length;
+        }
+        _snakeKey = Uuid().v1();
+      });
+
+  void openSettingsModal() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) {
+        return Center(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+            ),
+            child: SnakeSettings(
+              defaultRows: ROWS,
+              defaultColumns: COLUMNS,
+              defaultSpeed: SNAKE_SPEED,
+              defaultAnimated: ANIMATED,
+              rows: _rows,
+              columns: _columns,
+              speed: _snakeSpeed,
+              animated: _animated,
+              onSettingChange: (
+                SnakeSettingType type,
+                Object value,
+              ) {
+                switch (type) {
+                  case SnakeSettingType.rows:
+                    _rows = value;
+                    break;
+                  case SnakeSettingType.columns:
+                    _columns = value;
+                    break;
+                  case SnakeSettingType.speed:
+                    _snakeSpeed = value;
+                    break;
+                  case SnakeSettingType.animated:
+                    if (!_animated && value)
+                      _maxLength++;
+                    else if (_animated && !value) _maxLength--;
+                    _animated = value;
+                    break;
+                }
+              },
+              onCancel: () {
+                Navigator.pop(
+                  context,
+                );
+              },
+              onApply: () {
+                Navigator.pop(
+                  context,
+                  'Apply',
+                );
+              },
+            ),
+          ),
+        );
+      },
+    ).then((value) {
+      if (value == 'Apply') {
+        Timer(
+          const Duration(milliseconds: 200),
+          () => setState(() {
+            _snakeKey = Uuid().v1();
+          }),
+        );
+      }
+    });
   }
 }

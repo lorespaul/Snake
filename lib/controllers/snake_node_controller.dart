@@ -1,8 +1,9 @@
 import 'dart:ui';
 
-import 'package:Snake/widgets/snake_grid.dart';
+import 'package:Snake/controllers/abstract_snake_controller.dart';
+import 'package:Snake/models/cell.dart';
 
-class SnakeNodeController {
+class SnakeNodeController extends AbstractSnakeController {
   SnakeNodeController(int rows, int columns) {
     _listeners = List.generate(
       rows,

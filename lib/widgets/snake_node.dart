@@ -1,5 +1,6 @@
 import 'package:Snake/controllers/snake_node_controller.dart';
-import 'package:Snake/widgets/snake_grid.dart';
+import 'package:Snake/models/cell.dart';
+import 'package:Snake/models/enums/side.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -75,10 +76,10 @@ class _SnakeNodeState extends State<SnakeNode> {
   }
 
   BorderSide _getBorderSide(
-      _Side side, Cell previous, Cell next, Color background) {
+      Side side, Cell previous, Cell next, Color background) {
     var white = false;
     switch (side) {
-      case _Side.top:
+      case Side.top:
         white = (previous != null &&
                 (previous.row == widget.row - 1 ||
                     (previous.row == _maxRow && widget.row == 0)) &&
@@ -88,7 +89,7 @@ class _SnakeNodeState extends State<SnakeNode> {
                     (next.row == _maxRow && widget.row == 0)) &&
                 next.column == widget.column);
         break;
-      case _Side.bottom:
+      case Side.bottom:
         white = (previous != null &&
                 (previous.row == widget.row + 1 ||
                     (previous.row == 0 && widget.row == _maxRow)) &&
@@ -98,7 +99,7 @@ class _SnakeNodeState extends State<SnakeNode> {
                     (next.row == 0 && widget.row == _maxRow)) &&
                 next.column == widget.column);
         break;
-      case _Side.left:
+      case Side.left:
         white = (previous != null &&
                 (previous.column == widget.column - 1 ||
                     (previous.column == _maxColumn && widget.column == 0)) &&
@@ -108,7 +109,7 @@ class _SnakeNodeState extends State<SnakeNode> {
                     (next.column == _maxColumn && widget.column == 0)) &&
                 next.row == widget.row);
         break;
-      case _Side.right:
+      case Side.right:
         white = (previous != null &&
                 (previous.column == widget.column + 1 ||
                     (previous.column == 0 && widget.column == _maxColumn)) &&
@@ -134,10 +135,10 @@ class _SnakeNodeState extends State<SnakeNode> {
       var next =
           _snakeIndex + 1 < _snake.length ? _snake[_snakeIndex + 1] : null;
       return Border(
-        top: _getBorderSide(_Side.top, previous, next, background),
-        bottom: _getBorderSide(_Side.bottom, previous, next, background),
-        left: _getBorderSide(_Side.left, previous, next, background),
-        right: _getBorderSide(_Side.right, previous, next, background),
+        top: _getBorderSide(Side.top, previous, next, background),
+        bottom: _getBorderSide(Side.bottom, previous, next, background),
+        left: _getBorderSide(Side.left, previous, next, background),
+        right: _getBorderSide(Side.right, previous, next, background),
       );
     } else if (_color == Colors.red[300]) {
       return Border.all(
@@ -146,7 +147,7 @@ class _SnakeNodeState extends State<SnakeNode> {
       );
     } else {
       return Border.all(
-        color: _color == Colors.black ? Colors.grey[700] : _color,
+        color: _color == Colors.black ? Colors.grey[800] : _color,
         width: 0,
       );
     }
@@ -179,11 +180,4 @@ class _SnakeNodeState extends State<SnakeNode> {
       ),
     );
   }
-}
-
-enum _Side {
-  top,
-  bottom,
-  left,
-  right,
 }
