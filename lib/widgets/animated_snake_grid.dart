@@ -20,6 +20,7 @@ class AnimatedSnakeGrid extends StatefulWidget {
     @required this.columns,
     @required this.maxLength,
     this.speed = SnakeSpeed.medium,
+    this.onStop,
     this.onRestart,
     this.onOpenSettings,
   }) : super(key: key);
@@ -28,6 +29,7 @@ class AnimatedSnakeGrid extends StatefulWidget {
   final int columns;
   final SnakeSpeed speed;
   final int maxLength;
+  final Function(int) onStop;
   final Function(int) onRestart;
   final Function onOpenSettings;
 
@@ -284,6 +286,9 @@ class _AnimatedSnakeGridState extends State<AnimatedSnakeGrid>
 
   void _stopAnimation() {
     _animationStopped = true;
+    if (widget.onStop != null) {
+      widget.onStop(_snakePositions.length);
+    }
   }
 
   @override

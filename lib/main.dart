@@ -119,6 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   columns: _columns,
                   speed: _snakeSpeed,
                   maxLength: _maxLength,
+                  onStop: onStop,
                   onRestart: restart,
                   onOpenSettings: openSettingsModal,
                 )
@@ -128,12 +129,19 @@ class _MyHomePageState extends State<MyHomePage> {
                   columns: _columns,
                   speed: _snakeSpeed,
                   maxLength: _maxLength,
+                  onStop: onStop,
                   onRestart: restart,
                   onOpenSettings: openSettingsModal,
                 ),
         ),
       ),
     );
+  }
+
+  void onStop(int length) {
+    if (length > _maxLength) {
+      _maxLength = length;
+    }
   }
 
   void restart(int length) => setState(() {
