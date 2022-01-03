@@ -1,7 +1,6 @@
-import 'package:Snake/controllers/snake_node_controller.dart';
-import 'package:Snake/models/cell.dart';
-import 'package:Snake/models/enums/side.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:snake/controllers/snake_node_controller.dart';
+import 'package:snake/models/cell.dart';
+import 'package:snake/models/enums/side.dart';
 import 'package:flutter/material.dart';
 
 class SnakeNode extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'dart:ui';
 
-import 'package:Snake/controllers/abstract_snake_controller.dart';
-import 'package:Snake/models/cell.dart';
-import 'package:Snake/models/enums/direction.dart';
+import 'package:snake/controllers/abstract_snake_controller.dart';
+import 'package:snake/models/cell.dart';
+import 'package:snake/models/enums/direction.dart';
 
 class AnimatedSnakeNodeController extends AbstractSnakeController {
   AnimatedSnakeNodeController(int rows, int columns) {

@@ -1,5 +1,4 @@
-import 'package:Snake/controllers/abstract_snake_controller.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:snake/controllers/abstract_snake_controller.dart';
 import 'package:flutter/material.dart';
 
 class SnakeBoard extends StatefulWidget {

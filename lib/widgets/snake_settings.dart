@@ -1,4 +1,4 @@
-import 'package:Snake/models/enums/snake_speed.dart';
+import 'package:snake/models/enums/snake_speed.dart';
 import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
 import 'package:uuid/uuid.dart';
@@ -253,7 +253,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                             Container(
                               height: 60,
                               padding: EdgeInsets.all(17),
-                              child: RaisedButton(
+                              child: ElevatedButton(
                                 child: Text('Reset defaults'),
                                 onPressed: () => setState(
                                   () {
@@ -279,7 +279,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                     Container(
                       alignment: Alignment.center,
                       margin: EdgeInsets.only(top: 30, right: 20),
-                      child: RaisedButton(
+                      child: ElevatedButton(
                         child: Text('Cancel'),
                         onPressed: () {
                           widget.onCancel();
@@ -289,7 +289,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                     Container(
                       alignment: Alignment.center,
                       margin: EdgeInsets.only(top: 30),
-                      child: RaisedButton(
+                      child: ElevatedButton(
                         child: Text('Apply'),
                         onPressed: () {
                           widget.onSettingChange(

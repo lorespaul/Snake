@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import 'package:Snake/controllers/abstract_snake_controller.dart';
-import 'package:Snake/models/cell.dart';
+import 'package:snake/controllers/abstract_snake_controller.dart';
+import 'package:snake/models/cell.dart';
 
 class SnakeNodeController extends AbstractSnakeController {
   SnakeNodeController(int rows, int columns) {

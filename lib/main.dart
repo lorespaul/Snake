@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:Snake/widgets/animated_snake_grid.dart';
-import 'package:Snake/widgets/snake_grid.dart';
-import 'package:Snake/widgets/snake_settings.dart';
+import 'package:snake/widgets/animated_snake_grid.dart';
+import 'package:snake/widgets/snake_grid.dart';
+import 'package:snake/widgets/snake_settings.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';

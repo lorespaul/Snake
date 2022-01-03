@@ -1,12 +1,11 @@
 import 'dart:async';
 
-import 'package:Snake/controllers/animated_snake_node_controller.dart';
-import 'package:Snake/models/cell.dart';
-import 'package:Snake/models/enums/direction.dart';
-import 'package:Snake/models/enums/snake_speed.dart';
-import 'package:Snake/widgets/snake_board.dart';
-import 'package:Snake/widgets/animated_snake_node.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:snake/controllers/animated_snake_node_controller.dart';
+import 'package:snake/models/cell.dart';
+import 'package:snake/models/enums/direction.dart';
+import 'package:snake/models/enums/snake_speed.dart';
+import 'package:snake/widgets/snake_board.dart';
+import 'package:snake/widgets/animated_snake_node.dart';
 import 'package:flutter/material.dart';
 
 import 'dart:math';
@@ -82,11 +81,11 @@ class _AnimatedSnakeGridState extends State<AnimatedSnakeGrid>
       ),
     );
     _direction = Direction.none;
-    _snakePositions = List<Cell>();
+    _snakePositions = <Cell>[];
     for (int i in _initialSnake) {
       _snakePositions.add(Cell((widget.rows / 2).round(), i));
     }
-    _nextKeys = List<RawKeyEvent>();
+    _nextKeys = [];
     _processDimensions();
     _initTimers();
   }
@@ -293,10 +292,10 @@ class _AnimatedSnakeGridState extends State<AnimatedSnakeGrid>
 
   @override
   Widget build(BuildContext context) {
-    var widgetRows = List<Row>();
+    var widgetRows = <Row>[];
 
     for (int i = 0; i < widget.rows; i++) {
-      var widgetColumns = List<Column>();
+      var widgetColumns = <Column>[];
 
       for (int n = 0; n < widget.columns; n++) {
         final row = i;
@@ -452,26 +451,38 @@ class _AnimatedSnakeGridState extends State<AnimatedSnakeGrid>
                     padding: EdgeInsets.all(20),
                     child: Column(
                       children: [
-                        RaisedButton(
-                          child: Text('Settings'),
-                          onPressed: () {
-                            if (widget.onOpenSettings != null) {
-                              _stopAnimation();
-                              widget.onOpenSettings();
-                            }
-                          },
+                        Padding(
+                          padding: EdgeInsets.all(5),
+                          child: ElevatedButton(
+                            child: Text('Settings'),
+                            onPressed: () {
+                              if (widget.onOpenSettings != null) {
+                                _stopAnimation();
+                                widget.onOpenSettings();
+                              }
+                            },
+                          ),
                         ),
-                        RaisedButton(
-                          child: Text('Continue'),
-                          onPressed: _initTimers,
+                        Padding(
+                          padding: EdgeInsets.all(5),
+                          child: ElevatedButton(
+                            child: Text('Continue'),
+                            onPressed: _initTimers,
+                          ),
                         ),
-                        RaisedButton(
-                          child: Text('Stop'),
-                          onPressed: _stopAnimation,
+                        Padding(
+                          padding: EdgeInsets.all(5),
+                          child: ElevatedButton(
+                            child: Text('Stop'),
+                            onPressed: _stopAnimation,
+                          ),
                         ),
-                        RaisedButton(
-                          child: Text('Restart'),
-                          onPressed: _restart,
+                        Padding(
+                          padding: EdgeInsets.all(5),
+                          child: ElevatedButton(
+                            child: Text('Restart'),
+                            onPressed: _restart,
+                          ),
                         ),
                         SnakeBoard(
                           key: Key('SnakeBoard${widget.key.toString()}'),
