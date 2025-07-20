@@ -22,12 +22,12 @@ class AnimatedSnakeNodeController extends AbstractSnakeController {
     );
   }
 
-  List<
+  late List<
       List<
           Function(List<List<Color>>, List<Cell>, bool, int, bool, bool,
-              Direction)>> _listeners;
-  List<List<Function(Direction)>> _initListeners;
-  Function(int, int) _boardListener;
+              Direction)?>> _listeners;
+  late List<List<Function(Direction)?>> _initListeners;
+  Function(int, int)? _boardListener;
 
   void addListener(
       int row,
@@ -72,7 +72,7 @@ class AnimatedSnakeNodeController extends AbstractSnakeController {
         }
       }
     }
-    if (_boardListener != null) _boardListener(length, maxLength);
+    if (_boardListener != null) _boardListener!(length, maxLength);
   }
 
   void triggerInit(Direction direction) {

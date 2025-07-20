@@ -14,8 +14,8 @@ class SnakeNodeController extends AbstractSnakeController {
     );
   }
 
-  List<List<Function(List<List<Color>>, List<Cell>, bool)>> _listeners;
-  Function(int, int) _boardListener;
+  late List<List<Function(List<List<Color>>, List<Cell>, bool)?>> _listeners;
+  Function(int, int)? _boardListener;
 
   void addListener(int row, int column,
       Function(List<List<Color>>, List<Cell>, bool) listener) {
@@ -42,6 +42,6 @@ class SnakeNodeController extends AbstractSnakeController {
         }
       }
     }
-    if (_boardListener != null) _boardListener(length, maxLength);
+    if (_boardListener != null) _boardListener!(length, maxLength);
   }
 }

@@ -14,10 +14,10 @@ import 'package:flutter/services.dart';
 
 class SnakeGrid extends StatefulWidget {
   SnakeGrid({
-    Key key,
-    @required this.rows,
-    @required this.columns,
-    @required this.maxLength,
+    required Key key,
+    required this.rows,
+    required this.columns,
+    required this.maxLength,
     this.speed = SnakeSpeed.medium,
     this.onStop,
     this.onRestart,
@@ -28,31 +28,31 @@ class SnakeGrid extends StatefulWidget {
   final int columns;
   final SnakeSpeed speed;
   final int maxLength;
-  final Function(int) onStop;
-  final Function(int) onRestart;
-  final Function onOpenSettings;
+  final Function(int)? onStop;
+  final Function(int)? onRestart;
+  final Function? onOpenSettings;
 
   @override
   _SnakeGridState createState() => _SnakeGridState();
 }
 
 class _SnakeGridState extends State<SnakeGrid> {
-  FocusNode _focusNode;
-  List<List<Color>> _whiteNodes;
-  List<Cell> _snakePositions;
-  Direction _direction;
-  Timer _movingTimer;
-  Timer _generateTimer;
-  Cell _generate;
+  late FocusNode _focusNode;
+  late List<List<Color>> _whiteNodes;
+  late List<Cell> _snakePositions;
+  late Direction _direction;
+  Timer? _movingTimer;
+  Timer? _generateTimer;
+  Cell? _generate;
   int _generationCounter = 0;
-  bool _lose;
-  SnakeNodeController _snakeNodeController;
-  List<int> _initialSnake;
-  List<RawKeyEvent> _nextKeys;
+  late bool _lose;
+  late SnakeNodeController _snakeNodeController;
+  late List<int> _initialSnake;
+  late List<KeyEvent> _nextKeys;
   final Random _random = Random();
 
-  double _snakeNodeWidth;
-  double _snakeNodeHeight;
+  late double _snakeNodeWidth;
+  late double _snakeNodeHeight;
 
   static const double MAX_WIDTH = 550;
   static const double MAX_HEIGHT = 550;
@@ -130,7 +130,7 @@ class _SnakeGridState extends State<SnakeGrid> {
       case SnakeSpeed.fast:
         return 80;
     }
-    return 100;
+    // return 100;
   }
 
   void _moveSnake() {
@@ -165,45 +165,44 @@ class _SnakeGridState extends State<SnakeGrid> {
       case Direction.none:
         return;
     }
-    if (newHead != null) {
-      if (_generate == null ||
-          _generate.row != newHead.row ||
-          _generate.column != newHead.column) {
-        if (_whiteNodes[newHead.row][newHead.column] == Colors.white) {
-          _lose = true;
-          _snakeNodeController.trigger(
-            _whiteNodes,
-            _snakePositions,
-            _snakePositions.length,
-            widget.maxLength,
-            true,
-          );
-          _clearTimers();
-          return;
-        }
 
-        _snakePositions.removeAt(0);
-        _whiteNodes[tail.row][tail.column] = Colors.black;
-      } else {
-        _generationCounter = 0;
-        _generate = null;
+    if (_generate == null ||
+        _generate!.row != newHead.row ||
+        _generate!.column != newHead.column) {
+      if (_whiteNodes[newHead.row][newHead.column] == Colors.white) {
+        _lose = true;
+        _snakeNodeController.trigger(
+          _whiteNodes,
+          _snakePositions,
+          _snakePositions.length,
+          widget.maxLength,
+          true,
+        );
+        _clearTimers();
+        return;
       }
-      _snakePositions.add(newHead);
 
-      _whiteNodes[newHead.row][newHead.column] = Colors.white;
-      _snakeNodeController.trigger(
-        _whiteNodes,
-        _snakePositions,
-        _snakePositions.length,
-        widget.maxLength,
-        false,
-      );
+      _snakePositions.removeAt(0);
+      _whiteNodes[tail.row][tail.column] = Colors.black;
+    } else {
+      _generationCounter = 0;
+      _generate = null;
     }
+    _snakePositions.add(newHead);
+
+    _whiteNodes[newHead.row][newHead.column] = Colors.white;
+    _snakeNodeController.trigger(
+      _whiteNodes,
+      _snakePositions,
+      _snakePositions.length,
+      widget.maxLength,
+      false,
+    );
   }
 
   void _restart() {
     if (widget.onRestart != null) {
-      widget.onRestart(_snakePositions.length);
+      widget.onRestart!(_snakePositions.length);
     }
   }
 
@@ -216,9 +215,9 @@ class _SnakeGridState extends State<SnakeGrid> {
         column = _random.nextInt(widget.columns);
       } while (_whiteNodes[row][column] == Colors.white);
       _generate = Cell(row, column);
-      _whiteNodes[row][column] = Colors.red[300];
+      _whiteNodes[row][column] = Colors.red[300]!;
     } else if (_generationCounter == 5) {
-      _whiteNodes[_generate.row][_generate.column] = Colors.black;
+      _whiteNodes[_generate!.row][_generate!.column] = Colors.black;
       _generationCounter = 0;
       _generate = null;
     } else {
@@ -234,12 +233,12 @@ class _SnakeGridState extends State<SnakeGrid> {
   }
 
   void _clearTimers() {
-    if (_movingTimer != null) _movingTimer.cancel();
-    if (_generateTimer != null) _generateTimer.cancel();
+    if (_movingTimer != null) _movingTimer!.cancel();
+    if (_generateTimer != null) _generateTimer!.cancel();
     _movingTimer = null;
     _generateTimer = null;
     if (widget.onStop != null) {
-      widget.onStop(_snakePositions.length);
+      widget.onStop!(_snakePositions.length);
     }
   }
 
@@ -275,10 +274,10 @@ class _SnakeGridState extends State<SnakeGrid> {
     }
 
     _focusNode.requestFocus();
-    return RawKeyboardListener(
+    return KeyboardListener(
       key: Key('Keyboard${widget.key.toString()}'),
       focusNode: _focusNode,
-      onKey: _keyListener,
+      onKeyEvent: _keyListener,
       child: Container(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -397,7 +396,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                   elevation: 7,
                   child: Container(
                     width: 150,
-                    padding: EdgeInsets.all(20),
+                    padding: EdgeInsets.all(10),
                     child: Column(
                       children: [
                         Padding(
@@ -407,7 +406,7 @@ class _SnakeGridState extends State<SnakeGrid> {
                             onPressed: () {
                               if (widget.onOpenSettings != null) {
                                 _clearTimers();
-                                widget.onOpenSettings();
+                                widget.onOpenSettings!();
                               }
                             },
                           ),
@@ -467,8 +466,8 @@ class _SnakeGridState extends State<SnakeGrid> {
     );
   }
 
-  void _keyListener(RawKeyEvent event) {
-    if (event.runtimeType.toString() == 'RawKeyDownEvent') {
+  void _keyListener(KeyEvent event) {
+    if (event.runtimeType.toString() == 'KeyDownEvent') {
       if (event.logicalKey == LogicalKeyboardKey.space) {
         if (_lose) {
           _restart();
@@ -483,7 +482,7 @@ class _SnakeGridState extends State<SnakeGrid> {
     }
   }
 
-  void _updateDirection(RawKeyEvent event) {
+  void _updateDirection(KeyEvent event) {
     switch (event.logicalKey.keyLabel) {
       case 'l':
         if (_direction != Direction.left) _direction = Direction.right;

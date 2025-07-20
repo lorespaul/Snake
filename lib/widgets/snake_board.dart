@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 
 class SnakeBoard extends StatefulWidget {
   SnakeBoard({
-    Key key,
-    this.length,
-    this.maxLength,
+    required Key key,
+    required this.length,
+    required this.maxLength,
     this.offset = 0,
-    this.controller,
+    required this.controller,
   }) : super(key: key);
   final int length;
   final int maxLength;
@@ -19,8 +19,8 @@ class SnakeBoard extends StatefulWidget {
 }
 
 class _SnakeBoardState extends State<SnakeBoard> {
-  int _length;
-  int _maxLength;
+  late int _length;
+  late int _maxLength;
 
   @override
   void initState() {
@@ -30,19 +30,17 @@ class _SnakeBoardState extends State<SnakeBoard> {
       _maxLength = _length;
     else
       _maxLength = widget.maxLength;
-    if (widget.controller != null) {
-      widget.controller.addBoardListener(
-        (int length, int maxLength) => setState(
-          () {
-            _length = length;
-            if (length > maxLength)
-              _maxLength = length;
-            else
-              _maxLength = maxLength;
-          },
-        ),
-      );
-    }
+    widget.controller.addBoardListener(
+      (int length, int maxLength) => setState(
+        () {
+          _length = length;
+          if (length > maxLength)
+            _maxLength = length;
+          else
+            _maxLength = maxLength;
+        },
+      ),
+    );
   }
 
   @override
@@ -64,7 +62,7 @@ class _SnakeBoardState extends State<SnakeBoard> {
                 margin: EdgeInsets.only(right: 5),
                 decoration: BoxDecoration(
                   color: Colors.red[300],
-                  border: Border.all(color: Colors.red[600], width: 2.5),
+                  border: Border.all(color: Colors.red[600]!, width: 2.5),
                 ),
               ),
               Container(

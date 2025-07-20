@@ -6,16 +6,16 @@ import 'package:flutter/material.dart';
 
 class SnakeNode extends StatefulWidget {
   SnakeNode({
-    Key key,
-    @required this.controller,
-    @required this.row,
-    @required this.column,
-    @required this.width,
-    @required this.height,
-    @required this.grid,
-    @required this.snake,
+    required Key key,
+    required this.controller,
+    required this.row,
+    required this.column,
+    required this.width,
+    required this.height,
+    required this.grid,
+    required this.snake,
     this.direction = Direction.none,
-    @required this.animationController,
+    required this.animationController,
   }) : super(key: key);
 
   final AnimatedSnakeNodeController controller;
@@ -36,24 +36,24 @@ class SnakeNode extends StatefulWidget {
 class _SnakeNodeState extends State<SnakeNode> {
   _SnakeNodeState(this._maxRow, this._maxColumn, this._cell);
 
-  Color _color;
-  List<List<Color>> _grid;
-  List<Cell> _snake;
-  int _snakeIndex;
+  late Color _color;
+  late List<List<Color>> _grid;
+  late List<Cell> _snake;
+  late int _snakeIndex;
 
   final Cell _cell;
   final int _maxRow;
   final int _maxColumn;
 
   bool _lose = false;
-  _SnakeSide _snakeSide;
-  Direction _direction;
+  late _SnakeSide _snakeSide;
+  late Direction _direction;
 
   bool _init = true;
   bool _keepTail = false;
 
   static const double SNAKE_BORDER_WIDTH = 2.5;
-  static final Color _snakeBorderColor = Colors.green[700];
+  static final Color _snakeBorderColor = Colors.green[700]!;
 
   @override
   void initState() {
@@ -120,7 +120,9 @@ class _SnakeNodeState extends State<SnakeNode> {
         ? _SnakeSide.tail
         : _isHead()
             ? _SnakeSide.head
-            : _isPreHead() ? _SnakeSide.preHead : _SnakeSide.none;
+            : _isPreHead()
+                ? _SnakeSide.preHead
+                : _SnakeSide.none;
   }
 
   bool _isHead() {
@@ -136,7 +138,7 @@ class _SnakeNodeState extends State<SnakeNode> {
   }
 
   BorderSide _getBorderSide(
-      Side side, Cell previous, Cell next, Color background) {
+      Side side, Cell? previous, Cell? next, Color background) {
     var white = false;
     if (_snakeSide == _SnakeSide.preHead && !_init) {
       next = null;
@@ -194,7 +196,7 @@ class _SnakeNodeState extends State<SnakeNode> {
 
   Border _getBorders(Color background) {
     if (_snakeIndex != -1) {
-      Cell previous, next;
+      Cell? previous, next;
       previous = _snakeIndex - 1 >= 0 ? _snake[_snakeIndex - 1] : null;
       next = _snakeIndex + 1 < _snake.length ? _snake[_snakeIndex + 1] : null;
       return Border(
@@ -205,12 +207,12 @@ class _SnakeNodeState extends State<SnakeNode> {
       );
     } else if (_color == Colors.red[300]) {
       return Border.all(
-        color: Colors.red[600],
+        color: Colors.red[600]!,
         width: SNAKE_BORDER_WIDTH,
       );
     } else {
       return Border.all(
-        color: _color == Colors.black ? Colors.grey[800] : _color,
+        color: _color == Colors.black ? Colors.grey[800]! : _color,
         width: 0,
       );
     }
@@ -264,7 +266,7 @@ class _SnakeNodeState extends State<SnakeNode> {
             ?
             // snakeSide == SnakeSide.nextHead ? _snakeBorderColor :
             Colors.white
-            : Colors.red[200]
+            : Colors.red[200]!
         : _color;
 
     final borders = _getBorders(background);

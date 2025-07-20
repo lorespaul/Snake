@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 
 class SnakeNode extends StatefulWidget {
   SnakeNode({
-    Key key,
-    @required this.controller,
-    @required this.row,
-    @required this.column,
-    @required this.width,
-    @required this.height,
-    @required this.grid,
-    @required this.snake,
+    required Key key,
+    required this.controller,
+    required this.row,
+    required this.column,
+    required this.width,
+    required this.height,
+    required this.grid,
+    required this.snake,
   }) : super(key: key);
 
   final SnakeNodeController controller;
@@ -31,10 +31,10 @@ class SnakeNode extends StatefulWidget {
 class _SnakeNodeState extends State<SnakeNode> {
   _SnakeNodeState(this._maxRow, this._maxColumn, this._cell);
 
-  Color _color;
-  List<List<Color>> _grid;
-  List<Cell> _snake;
-  int _snakeIndex;
+  late Color _color;
+  late List<List<Color>> _grid;
+  late List<Cell> _snake;
+  late int _snakeIndex;
 
   final Cell _cell;
   final int _maxRow;
@@ -43,7 +43,7 @@ class _SnakeNodeState extends State<SnakeNode> {
   bool _lose = false;
 
   static const double SNAKE_BORDER_WIDTH = 2.5;
-  static final Color _snakeBorderColor = Colors.green[700];
+  static final Color _snakeBorderColor = Colors.green[700]!;
 
   @override
   void initState() {
@@ -75,7 +75,7 @@ class _SnakeNodeState extends State<SnakeNode> {
   }
 
   BorderSide _getBorderSide(
-      Side side, Cell previous, Cell next, Color background) {
+      Side side, Cell? previous, Cell? next, Color background) {
     var white = false;
     switch (side) {
       case Side.top:
@@ -141,12 +141,12 @@ class _SnakeNodeState extends State<SnakeNode> {
       );
     } else if (_color == Colors.red[300]) {
       return Border.all(
-        color: Colors.red[600],
+        color: Colors.red[600]!,
         width: SNAKE_BORDER_WIDTH,
       );
     } else {
       return Border.all(
-        color: _color == Colors.black ? Colors.grey[800] : _color,
+        color: _color == Colors.black ? Colors.grey[800]! : _color,
         width: 0,
       );
     }
@@ -159,8 +159,11 @@ class _SnakeNodeState extends State<SnakeNode> {
   @override
   Widget build(BuildContext context) {
     var text = _isHead() ? 'XX' : '';
-    var background =
-        _color == Colors.white ? !_lose ? _color : Colors.red[200] : _color;
+    var background = _color == Colors.white
+        ? !_lose
+            ? _color
+            : Colors.red[200]!
+        : _color;
     return Container(
       width: widget.width,
       height: widget.height,

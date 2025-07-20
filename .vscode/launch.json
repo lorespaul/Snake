@@ -8,21 +8,33 @@
             "name": "Run",
             "program": "lib/main.dart",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "args": [
+                "-d",
+                "macos"
+            ]
         },
         {
             "name": "Run profile",
             "program": "lib/main.dart",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "args": [
+                "-d",
+                "macos"
+            ]
         },
         {
             "name": "Run release",
             "program": "lib/main.dart",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "args": [
+                "-d",
+                "macos"
+            ]
         }
     ]
 }

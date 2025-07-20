@@ -5,18 +5,18 @@ import 'package:uuid/uuid.dart';
 
 class SnakeSettings extends StatefulWidget {
   SnakeSettings({
-    Key key,
-    @required this.defaultRows,
-    @required this.defaultColumns,
-    @required this.defaultSpeed,
-    @required this.defaultAnimated,
-    @required this.rows,
-    @required this.columns,
-    @required this.speed,
-    @required this.animated,
-    @required this.onSettingChange,
-    @required this.onCancel,
-    @required this.onApply,
+    required Key key,
+    required this.defaultRows,
+    required this.defaultColumns,
+    required this.defaultSpeed,
+    required this.defaultAnimated,
+    required this.rows,
+    required this.columns,
+    required this.speed,
+    required this.animated,
+    required this.onSettingChange,
+    required this.onCancel,
+    required this.onApply,
   }) : super(key: key);
 
   final int defaultRows;
@@ -37,15 +37,15 @@ class SnakeSettings extends StatefulWidget {
 }
 
 class _SnakeSettingsState extends State<SnakeSettings> {
-  int _rows;
-  int _columns;
-  SnakeSpeed _snakeSpeed;
-  bool _animated;
+  late int _rows;
+  late int _columns;
+  late SnakeSpeed _snakeSpeed;
+  late bool _animated;
 
-  bool _blockAxis;
+  late bool _blockAxis;
 
-  String _rowsKey;
-  String _columnsKey;
+  late String _rowsKey;
+  late String _columnsKey;
 
   static const double CONTAINER_HEIGHT = 50.0;
   static const int MIN_DIMENSION = 10;
@@ -102,12 +102,12 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                             Container(
                               height: 35,
                               margin: EdgeInsets.all(15),
-                              child: NumberPicker.integer(
+                              child: NumberPicker(
                                 key: Key(_rowsKey),
-                                scrollDirection: Axis.horizontal,
+                                axis: Axis.horizontal,
                                 haptics: true,
-                                listViewWidth: 150,
-                                initialValue: _rows,
+                                // listViewWidth: 150,
+                                value: _rows,
                                 minValue: MIN_DIMENSION,
                                 maxValue: MAX_DIMENSION,
                                 onChanged: (val) {
@@ -136,12 +136,12 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                             Container(
                               height: 35,
                               margin: EdgeInsets.all(15),
-                              child: NumberPicker.integer(
+                              child: NumberPicker(
                                 key: Key(_columnsKey),
-                                scrollDirection: Axis.horizontal,
+                                axis: Axis.horizontal,
                                 haptics: true,
-                                listViewWidth: 150,
-                                initialValue: _columns,
+                                // listViewWidth: 150,
+                                value: _columns,
                                 minValue: MIN_DIMENSION,
                                 maxValue: MAX_DIMENSION,
                                 onChanged: (val) {
@@ -219,7 +219,7 @@ class _SnakeSettingsState extends State<SnakeSettings> {
                                 }).toList(),
                                 value: _snakeSpeed,
                                 onChanged: (val) => setState(
-                                  () => _snakeSpeed = val,
+                                  () => _snakeSpeed = val!,
                                 ),
                               ),
                             ),

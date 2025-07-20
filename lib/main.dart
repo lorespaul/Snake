@@ -36,14 +36,14 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         canvasColor: Colors.transparent,
       ),
-      home: MyHomePage(title: 'Snake'),
+      home: MyHomePage(key: Key('HomePage'), title: 'Snake'),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({required Key key, required this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -67,10 +67,10 @@ class _MyHomePageState extends State<MyHomePage> {
   static const SnakeSpeed SNAKE_SPEED = SnakeSpeed.medium;
   static const bool ANIMATED = false;
 
-  int _rows;
-  int _columns;
-  SnakeSpeed _snakeSpeed;
-  bool _animated;
+  late int _rows;
+  late int _columns;
+  late SnakeSpeed _snakeSpeed;
+  late bool _animated;
   String _snakeKey = 'A';
   int _maxLength = 0;
 
@@ -161,6 +161,7 @@ class _MyHomePageState extends State<MyHomePage> {
               color: Colors.transparent,
             ),
             child: SnakeSettings(
+              key: Key('SnakeSettings'),
               defaultRows: ROWS,
               defaultColumns: COLUMNS,
               defaultSpeed: SNAKE_SPEED,
@@ -175,19 +176,20 @@ class _MyHomePageState extends State<MyHomePage> {
               ) {
                 switch (type) {
                   case SnakeSettingType.rows:
-                    _rows = value;
+                    _rows = value as int;
                     break;
                   case SnakeSettingType.columns:
-                    _columns = value;
+                    _columns = value as int;
                     break;
                   case SnakeSettingType.speed:
-                    _snakeSpeed = value;
+                    _snakeSpeed = value as SnakeSpeed;
                     break;
                   case SnakeSettingType.animated:
-                    if (!_animated && value)
+                    bool boolValue = value as bool;
+                    if (!_animated && boolValue)
                       _maxLength++;
-                    else if (_animated && !value) _maxLength--;
-                    _animated = value;
+                    else if (_animated && !boolValue) _maxLength--;
+                    _animated = boolValue;
                     break;
                 }
               },
